@@ -1,6 +1,6 @@
 -- udp/tcp dns listening
-setLocal("0.0.0.0:53", {})
-addLocal("[::]:53", {})
+setLocal("172.53.53.53:53", {})
+-- addLocal("[::]:53", {})
 -- disable security status polling via DNS
 setSecurityPollSuffix("")
 setVerboseHealthChecks(true)
@@ -8,16 +8,16 @@ setVerboseHealthChecks(true)
 addACL('fd74:f571:d3bd::/48')
 
 -- enable prometheus
-webserver("0.0.0.0:8083")
-setWebserverConfig({
-    statsRequireAuthentication = false,
-    acl = "10.0.0.0/8, 127.0.0.0/8"
-})
+-- webserver("0.0.0.0:8083")
+-- setWebserverConfig({
+--     statsRequireAuthentication = false,
+--     acl = "10.0.0.0/8, 127.0.0.0/8"
+-- })
 setAPIWritable(false)
 
 -- Local Bind
 newServer({
-    address = "10.5.0.3",
+    address = "127.0.0.1:20053",
     pool = "bind",
     tcpOnly = true,
     reconnectOnUp = true,
@@ -55,7 +55,7 @@ newServer({
 
 -- Local Blocky
 newServer({
-    address = "10.5.0.7",
+    address = "127.0.0.1:10053",
     pool = "blocky",
     tcpOnly = true,
     reconnectOnUp = true,
