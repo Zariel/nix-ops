@@ -67,6 +67,7 @@
 
       "20-dnsvip" = {
         matchConfig.Name = "dnsvip";
+        networkConfig.ConfigureWithoutCarrier = true;
         address = [ "172.53.53.53/32" ];
       };
     };
@@ -120,6 +121,7 @@
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default. wget
     helix
     sudo
+    doggo
   ];
 
   # Some programs need SUID wrappers, can be configured further or are started in user sessions. programs.mtr.enable = true; programs.gnupg.agent = {

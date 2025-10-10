@@ -1,11 +1,16 @@
 -- udp/tcp dns listening
-setLocal("172.53.53.53:53", {})
--- addLocal("[::]:53", {})
+-- Note: NixOS service configures primary listening address (172.53.53.53:53)
+
+-- Health check listener on localhost - used by healthcheck service to verify dnsdist
+-- functionality without depending on VIP state (port 5380 to avoid mDNS conflict on 5353)
+addLocal("127.0.0.1:5380", {})
+
 -- disable security status polling via DNS
 setSecurityPollSuffix("")
 setVerboseHealthChecks(true)
 
 addACL('fd74:f571:d3bd::/48')
+addACL('0.0.0.0/0')
 
 -- enable prometheus
 -- webserver("0.0.0.0:8083")
@@ -147,4 +152,7 @@ addAction("10.0.11.0/24", PoolAction("blocky"))    -- wireguard
 addAction({'10.42.0.0/16', '172.20.0.0/16'}, PoolAction('cloudflare'))
 
 -- log queries from unknown subnets
-addAction(AllRule(), LogAction('', false, false, false, false))
+addAction(AllRule(), LogAction('', true, false, true, false))
+
+-- default pool for unmatched queries (including from VIP itself)
+addAction(AllRule(), PoolAction("cloudflare"))
