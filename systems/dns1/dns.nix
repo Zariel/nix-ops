@@ -20,7 +20,7 @@
     enable = true;
   };
 
-  services.bird2 = {
+  services.bird = {
     enable = true;
     config = ''
       router id 10.1.53.10;

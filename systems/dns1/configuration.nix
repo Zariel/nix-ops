@@ -1,13 +1,41 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
     ./dns.nix
   ];
 
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
+  nix.settings = {
+    auto-optimise-store = true;
+    trusted-users = [
+      "root"
+      "chris"
+    ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+    # Binary cache settings
+    substituters = lib.mkAfter [
+      "http://10.1.1.155:5000"
+      "https://nix-community.cachix.org"
+      "https://nixpkgs-unfree.cachix.org" # unfree-package cache
+      "https://cachix.cachix.org" # general cachix cache
+      "https://cache.garnix.io" # builds Darwin packages
+    ];
+
+    trusted-public-keys = lib.mkAfter [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
+      "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "cache-name:nKgRvz/pXDZWsXAuzXcoRyyW2Ryut5EpoeLEeiyqgnA="
+    ];
+  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
