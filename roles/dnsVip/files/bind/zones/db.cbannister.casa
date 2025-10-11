@@ -1,12 +1,12 @@
 ; SOA Records
-$TTL 1h
+$TTL 5m
 $ORIGIN cbannister.casa.
 @ IN SOA gateway.cbannister.casa. gateway.cbannister.casa. (
-  1708606198       ; serial number; date +%s
+  2025101102       ; serial number; YYYYMMDDNN format
   2h               ; refresh period
   1h               ; retry period
   14d              ; expire time
-  1h               ; minimum ttl
+  5m               ; minimum ttl
 )
 
 ; NS Records
@@ -33,3 +33,7 @@ gaming                   IN  A  10.1.2.15
 
 k8s                      IN  A  10.5.0.2
 builder                  IN  A  10.1.1.155
+
+dns1 IN A 10.1.53.10
+dns2 IN A 10.1.53.11
+dns3 IN A 10.1.53.12
