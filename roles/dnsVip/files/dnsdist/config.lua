@@ -9,8 +9,12 @@ addLocal("127.0.0.1:5380", {})
 setSecurityPollSuffix("")
 setVerboseHealthChecks(true)
 
+-- Restrict to home networks only
 addACL('fd74:f571:d3bd::/48')
-addACL('0.0.0.0/0')
+addACL('10.0.0.0/8')
+addACL('192.168.0.0/16')
+addACL('127.0.0.0/8')
+addACL('172.20.0.0/16')
 
 -- enable prometheus
 -- webserver("0.0.0.0:8083")
@@ -24,14 +28,14 @@ setAPIWritable(false)
 newServer({
     address = "127.0.0.1:20053",
     pool = "bind",
-    tcpOnly = true,
     reconnectOnUp = true,
     healthCheckMode = "lazy",
     checkInterval = 1,
     lazyHealthCheckFailedInterval = 30,
     rise = 2,
     maxCheckFailures = 3,
-    checkName = 'gateway.cbannister.casa.',
+    checkType = 'SOA',
+    checkName = 'cbannister.casa.',
     mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
@@ -44,7 +48,6 @@ newServer({
 newServer({
     address = "10.45.0.55",
     pool = "k8s",
-    tcpOnly = true,
     reconnectOnUp = true,
     healthCheckMode = "lazy",
     checkInterval = 1,
@@ -62,10 +65,9 @@ newServer({
 newServer({
     address = "127.0.0.1:10053",
     pool = "blocky",
-    tcpOnly = true,
     reconnectOnUp = true,
     healthCheckMode = "lazy",
-    checkInterval = 1800,
+    checkInterval = 30,
     maxCheckFailures = 3,
     lazyHealthCheckFailedInterval = 30,
     rise = 2,

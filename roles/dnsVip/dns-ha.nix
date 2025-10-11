@@ -167,8 +167,15 @@ in
         "bird.service"
         "dnsdist.service"
       ];
-      wants = [ "network-online.target" "bird.service" "dnsdist.service" ];
-      requires = [ "systemd-networkd.service" "bird.service" ];
+      wants = [
+        "network-online.target"
+        "bird.service"
+        "dnsdist.service"
+      ];
+      requires = [
+        "systemd-networkd.service"
+        "bird.service"
+      ];
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
