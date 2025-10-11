@@ -21,31 +21,44 @@
       deploy-rs,
       ...
     }@inputs:
-    {
-      nixosConfigurations = {
-        dns1 = nixpkgs.lib.nixosSystem {
+    let
+      mkSystem =
+        { name }:
+        nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
             inherit inputs;
           };
           modules = [
-            ./systems/dns1
-            # home-manager.nixosModules.home-manager
-            # {
-            #   home-manager.useGlobalPkgs = true;
-            #   home-manager.useUserPackages = true;
-            #   home-manager.users.chris = ./homes/chris;
-            # }
+            ./systems/${name}
           ];
         };
+
+      mkDeploy =
+        { name, addr }:
+        {
+          hostname = addr;
+          profiles.system = {
+            sshUser = "chris";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.${name};
+          };
+        };
+    in
+    {
+      nixosConfigurations = {
+        dns1 = mkSystem { name = "dns1"; };
+        builder = mkSystem { name = "builder"; };
       };
 
-      deploy.nodes.dns1 = {
-        hostname = "10.1.53.10";
-        profiles.system = {
-          sshUser = "chris";
-          user = "root";
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.dns1;
+      deploy.nodes = {
+        dns1 = mkDeploy {
+          name = "dns1";
+          addr = "10.1.53.10";
+        };
+        builder = mkDeploy {
+          name = "builder";
+          addr = "10.1.1.155";
         };
       };
 
