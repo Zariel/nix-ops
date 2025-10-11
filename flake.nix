@@ -49,6 +49,7 @@
       nixosConfigurations = {
         dns1 = mkSystem { name = "dns1"; };
         dns2 = mkSystem { name = "dns2"; };
+        dns3 = mkSystem { name = "dns3"; };
         builder = mkSystem { name = "builder"; };
       };
 
@@ -60,6 +61,10 @@
         dns2 = mkDeploy {
           name = "dns2";
           addr = "10.1.53.11";
+        };
+        dns3 = mkDeploy {
+          name = "dns3";
+          addr = "10.1.53.12";
         };
         builder = mkDeploy {
           name = "builder";
