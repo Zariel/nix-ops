@@ -151,6 +151,8 @@ addAction({"10.1.3.0/24", "fd74:f571:d3bd:40::/64"}, PoolAction("blocky"))     -
 addAction("10.0.11.0/24", PoolAction("blocky"))    -- wireguard
 addAction({'10.42.0.0/16', '172.20.0.0/16'}, PoolAction('cloudflare'))
 
+addAction('127.0.0.1', PoolAction('cloudflare'))
+
 -- log queries from unknown subnets
 addAction(AllRule(), LogAction('', true, false, true, false))
 

@@ -38,7 +38,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "dns-1";
+  networking.hostName = "dns-2";
 
   # Enable networking
   networking.firewall.enable = false;
@@ -49,7 +49,7 @@
 
     networks."10-lan" = {
       matchConfig.Name = "ens*";
-      address = [ "10.1.53.10/24" ];
+      address = [ "10.1.53.11/24" ];
       gateway = [ "10.1.53.1" ];
       dns = [ "1.1.1.1" ];
     };
@@ -83,7 +83,7 @@
   # Configure console keymap
   console.keyMap = "uk";
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.chris = {
     isNormalUser = true;
     description = "chris";
@@ -118,7 +118,7 @@
   # Open ports in the firewall. networking.firewall.allowedTCPPorts = [ ... ]; networking.firewall.allowedUDPPorts = [ ... ]; Or disable the firewall
 
   # This value determines the NixOS release from which the default settings for stateful data, like file locations and database versions on your system
-  # were taken. It‘s perfectly fine and recommended to leave this value at the release version of the first install of this system. Before changing this
+  # were taken. It's perfectly fine and recommended to leave this value at the release version of the first install of this system. Before changing this
   # value read the documentation for this option (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
 

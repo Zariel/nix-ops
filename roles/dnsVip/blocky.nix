@@ -1,0 +1,70 @@
+{
+  config,
+  lib,
+  ...
+}:
+
+with lib;
+
+let
+  cfg = config.services.dnsVip;
+in
+{
+  config = mkIf cfg.enable {
+    services.blocky = {
+      settings = {
+        ports = {
+          dns = 10053;
+          http = 4000;
+        };
+
+        upstreams.groups.default = [
+          "tcp-tls:1.1.1.1:853"
+          "tcp-tls:1.0.0.1:853"
+        ];
+
+        ecs.useAsClient = true;
+
+        prometheus = {
+          enable = true;
+          path = "/metrics";
+        };
+
+        blocking = {
+          loading.downloads.timeout = "4m";
+
+          denylists = {
+            ads = [
+              "https://raw.githubusercontent.com/Zariel/adlists/main/blocklist.txt"
+              "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+              "https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt"
+              "https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-domains.txt"
+              "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts;showintro=0"
+              "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.txt"
+              "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/popupads.txt"
+              "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro.txt"
+            ];
+            fakenews = [
+              "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts"
+            ];
+            gambling = [
+              "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling-only/hosts"
+            ];
+          };
+
+          allowlists.ads = [
+            "https://raw.githubusercontent.com/Zariel/adlists/main/allowlist.txt"
+            "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt"
+            "www.thrivingautistic.org"
+          ];
+
+          clientGroupsBlock.default = [
+            "ads"
+            "fakenews"
+            "gambling"
+          ];
+        };
+      };
+    };
+  };
+}
