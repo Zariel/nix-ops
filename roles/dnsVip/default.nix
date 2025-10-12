@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -64,6 +65,10 @@ in
       enable = true;
       nodeIp = cfg.nodeIp;
     };
-    services.prometheus.exporters.node.enable = true;
+
+    # DNS-specific packages
+    environment.systemPackages = with pkgs; [
+      doggo
+    ];
   };
 }

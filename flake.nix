@@ -30,6 +30,7 @@
             inherit inputs;
           };
           modules = [
+            ./roles/base
             ./systems/${name}
           ];
         };
