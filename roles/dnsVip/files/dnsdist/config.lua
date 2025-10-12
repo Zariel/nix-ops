@@ -17,11 +17,11 @@ addACL('127.0.0.0/8')
 addACL('172.20.0.0/16')
 
 -- enable prometheus
--- webserver("0.0.0.0:8083")
--- setWebserverConfig({
---     statsRequireAuthentication = false,
---     acl = "10.0.0.0/8, 127.0.0.0/8"
--- })
+webserver("0.0.0.0:5383")
+setWebserverConfig({
+    statsRequireAuthentication = false,
+    acl = "10.0.0.0/8, 172.20.0.0/16"
+})
 setAPIWritable(false)
 
 -- Local Bind
