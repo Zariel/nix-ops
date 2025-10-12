@@ -31,7 +31,11 @@ in
         };
 
         blocking = {
-          loading.downloads.timeout = "4m";
+          loading = {
+            concurrency = 10;
+            strategy = "fast";
+            downloads.timeout = "4m";
+          };
 
           denylists = {
             ads = [
