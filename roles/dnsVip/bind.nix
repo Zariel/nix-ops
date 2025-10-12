@@ -13,6 +13,7 @@ in
   config = mkIf cfg.enable {
     services.bind = {
       listenOn = [ "127.0.0.1" ];
+      listenOnIpv6 = [ "::1" ];
       listenOnPort = 20053;
 
       cacheNetworks = [
