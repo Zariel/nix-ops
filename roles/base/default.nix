@@ -87,6 +87,9 @@
   environment.systemPackages = with pkgs; [
     helix
     sudo
+    nh
+    htop
+    btop
   ];
 
   # Services

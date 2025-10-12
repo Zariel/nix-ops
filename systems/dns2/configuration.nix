@@ -1,6 +1,7 @@
 { ... }:
 {
   networking.hostName = "dns-2";
+  networking.useDHCP = false;
 
   systemd.network = {
     enable = true;

@@ -10,7 +10,7 @@
   ];
 
   networking.hostName = "nix-builder";
-
+  networking.useDHCP = false;
   systemd.network = {
     enable = true;
     networks."10-lan" = {
@@ -35,9 +35,6 @@
   # Builder-specific packages
   environment.systemPackages = with pkgs; [
     neovim
-    nh
-    htop
-    btop
   ];
 
   services.qemuGuest.enable = true;
