@@ -16,5 +16,11 @@ in
       listenPort = 53;
       extraConfig = (builtins.readFile ./files/dnsdist/config.lua);
     };
+
+    # Ensure dnsdist starts after the dnsvip interface is ready
+    systemd.services.dnsdist = {
+      after = [ "sys-subsystem-net-devices-dnsvip.device" ];
+      bindsTo = [ "sys-subsystem-net-devices-dnsvip.device" ];
+    };
   };
 }
