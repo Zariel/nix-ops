@@ -20,6 +20,7 @@ in
         }
 
         protocol direct dnsvip_direct {
+          disabled;
           interface "dnsvip";
           ipv4;
         }
