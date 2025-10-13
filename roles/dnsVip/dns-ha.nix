@@ -19,6 +19,7 @@ let
     DNS_TIMEOUT=${toString cfg.dnsTimeout}
     HEALTH_CHECK_PORT=${toString cfg.healthCheckPort}
     BIRD_PROTOCOL="${cfg.birdProtocolName}"
+    BIRD_PROTOCOL_V6="${cfg.birdProtocolNameV6}"
 
     failure_count=0
     success_count=0
@@ -39,14 +40,16 @@ let
     }
 
     is_bird_advertising() {
-      # Check if BIRD direct protocol is enabled
-      ${pkgs.bird2}/bin/birdc show protocols "$BIRD_PROTOCOL" | grep -q "up"
+      # Check if both BIRD direct protocols are enabled
+      ${pkgs.bird2}/bin/birdc show protocols "$BIRD_PROTOCOL" | grep -q "up" && \
+      ${pkgs.bird2}/bin/birdc show protocols "$BIRD_PROTOCOL_V6" | grep -q "up"
     }
 
     enable_bird_advertisement() {
       if ! is_bird_advertising; then
         log "HEALTH OK - Enabling BIRD OSPF advertisement after $success_count consecutive successes"
-        ${pkgs.bird2}/bin/birdc enable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to enable BIRD protocol"
+        ${pkgs.bird2}/bin/birdc enable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to enable BIRD IPv4 protocol"
+        ${pkgs.bird2}/bin/birdc enable "$BIRD_PROTOCOL_V6" > /dev/null 2>&1 || log "WARNING: Failed to enable BIRD IPv6 protocol"
         advertising=true
         failure_count=0
         success_count=0
@@ -56,7 +59,8 @@ let
     disable_bird_advertisement() {
       if is_bird_advertising; then
         log "HEALTH FAILED - Disabling BIRD OSPF advertisement after $failure_count consecutive failures"
-        ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to disable BIRD protocol"
+        ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to disable BIRD IPv4 protocol"
+        ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL_V6" > /dev/null 2>&1 || log "WARNING: Failed to disable BIRD IPv6 protocol"
         advertising=false
         failure_count=0
         success_count=0
@@ -67,6 +71,7 @@ let
     if is_bird_advertising; then
       log "Starting with BIRD advertising enabled - disabling for clean startup"
       ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL" > /dev/null 2>&1 || true
+      ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL_V6" > /dev/null 2>&1 || true
       advertising=false
     else
       log "Starting with BIRD advertising disabled"
@@ -129,7 +134,13 @@ in
     birdProtocolName = mkOption {
       type = types.str;
       default = "dnsvip_direct";
-      description = "Name of BIRD direct protocol to control for advertisement";
+      description = "Name of BIRD direct protocol to control for IPv4 advertisement";
+    };
+
+    birdProtocolNameV6 = mkOption {
+      type = types.str;
+      default = "dnsvip_direct_v6";
+      description = "Name of BIRD direct protocol to control for IPv6 advertisement";
     };
 
     checkInterval = mkOption {

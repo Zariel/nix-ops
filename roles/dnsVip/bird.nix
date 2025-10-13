@@ -31,8 +31,37 @@ in
           };
         }
 
-        protocol ospf v2 {
+        protocol ospf v2 ospf4 {
           ipv4 {
+            import none;
+            export where source = RTS_DEVICE;
+          };
+
+          area 0.0.0.0 {
+            interface "ens*" {
+              type broadcast;
+              cost 10;
+            };
+          };
+        };
+
+        protocol direct dnsvip_direct_v6 {
+          disabled;
+          interface "dnsvip";
+          ipv6;
+        }
+
+        protocol kernel {
+          ipv6 {
+            import none;
+            export all;
+          };
+        }
+
+        protocol ospf v3 ospf6 {
+          router id ${cfg.nodeIp};
+
+          ipv6 {
             import none;
             export where source = RTS_DEVICE;
           };

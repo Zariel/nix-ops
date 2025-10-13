@@ -41,7 +41,6 @@
   # Networking defaults
   networking.firewall.enable = false;
   networking.networkmanager.enable = false;
-  networking.useDHCP = false;
   services.resolved.enable = true;
 
   # Locale and timezone

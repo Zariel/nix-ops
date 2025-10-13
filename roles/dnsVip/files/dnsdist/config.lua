@@ -4,6 +4,7 @@
 -- Health check listener on localhost - used by healthcheck service to verify dnsdist
 -- functionality without depending on VIP state (port 5380 to avoid mDNS conflict on 5353)
 addLocal("127.0.0.1:5380", {})
+addLocal("[fd74:f571:d3bd:53::53]", {reusePort=true})
 
 -- disable security status polling via DNS
 setSecurityPollSuffix("")

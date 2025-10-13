@@ -27,12 +27,6 @@ in
       description = "Node IP address (used for BIRD router-id and health check identification)";
       example = "10.1.53.10";
     };
-
-    vipAddress = mkOption {
-      type = types.str;
-      default = "172.53.53.53/32";
-      description = "Virtual IP address for DNS anycast service";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -50,7 +44,10 @@ in
       networks."20-dnsvip" = {
         matchConfig.Name = "dnsvip";
         networkConfig.ConfigureWithoutCarrier = true;
-        address = [ cfg.vipAddress ];
+        address = [
+          "172.53.53.53/32"
+          "fd74:f571:d3bd:53::53/128"
+        ];
       };
     };
 

@@ -10,6 +10,10 @@
       address = [ "10.1.53.12/24" ];
       gateway = [ "10.1.53.1" ];
       dns = [ "1.1.1.1" ];
+
+      networkConfig = {
+        IPv6AcceptRA = true;
+      };
     };
   };
 
