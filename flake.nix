@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -19,11 +20,15 @@
       nixpkgs,
       home-manager,
       deploy-rs,
+      chaotic,
       ...
     }@inputs:
     let
       mkSystem =
-        { name }:
+        {
+          name,
+          extraModules ? [ ],
+        }:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
@@ -32,7 +37,8 @@
           modules = [
             ./roles/base
             ./systems/${name}
-          ];
+          ]
+          ++ extraModules;
         };
 
       mkDeploy =
@@ -48,10 +54,47 @@
     in
     {
       nixosConfigurations = {
-        dns1 = mkSystem { name = "dns1"; };
-        dns2 = mkSystem { name = "dns2"; };
-        dns3 = mkSystem { name = "dns3"; };
-        builder = mkSystem { name = "builder"; };
+        dns1 = mkSystem {
+          name = "dns1";
+          extraModules = [ ./roles/server ];
+        };
+        dns2 = mkSystem {
+          name = "dns2";
+          extraModules = [ ./roles/server ];
+        };
+        dns3 = mkSystem {
+          name = "dns3";
+          extraModules = [ ./roles/server ];
+        };
+        builder = mkSystem {
+          name = "builder";
+          extraModules = [ ./roles/server ];
+        };
+        gaming = mkSystem {
+          name = "gaming";
+          extraModules = [
+            chaotic.nixosModules.default
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.chris = {
+                  imports = [
+                    ./homes/chris
+                    ./systems/gaming/home.nix
+                  ];
+                };
+                extraSpecialArgs = {
+                  inherit
+                    inputs
+                    self
+                    ;
+                };
+              };
+            }
+          ];
+        };
       };
 
       deploy.nodes = {

@@ -38,9 +38,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Networking defaults
-  networking.firewall.enable = false;
-  networking.networkmanager.enable = false;
   services.resolved.enable = true;
 
   # Locale and timezone
@@ -89,6 +86,8 @@
     nh
     htop
     btop
+    git
+    smartmontools
   ];
 
   # Services
