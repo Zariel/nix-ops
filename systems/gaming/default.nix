@@ -150,11 +150,14 @@
       "networkmanager"
       "wheel"
     ];
+    shell = pkgs.fish;
     packages = with pkgs; [
       kdePackages.kate
       #  thunderbird
     ];
   };
+
+  programs.fish.enable = true;
 
   # Install firefox.
   programs.firefox = {
@@ -166,6 +169,10 @@
 
   programs.steam = {
     enable = true;
+    extraCompatPackages = with pkgs; [
+      proton-cachyos_x86_64_v3
+      proton-ge-custom
+    ];
   };
 
   programs._1password.enable = true;
@@ -196,6 +203,7 @@
     lm_sensors
     pciutils
     gcc
+    linux-firmware
 
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget

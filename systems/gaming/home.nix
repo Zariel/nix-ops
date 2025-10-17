@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 {
   programs.mangohud = {
     enable = true;
@@ -12,4 +12,8 @@
       identityAgent = "~/.1password/agent.sock";
     };
   };
+
+  programs.claude-code.enable = true;
+
+  xdg.autostart.enable = true;
 }

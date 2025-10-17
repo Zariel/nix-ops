@@ -20,8 +20,10 @@
   # Enable modules
   programs.fish.enable = true;
   programs.tmux.enable = true;
-  programs.atuin.enable = true;
+  # programs.atuin.enable = true;
   programs.alacritty.enable = true;
+  programs.fzf.enable = true;
+  programs.zoxide.enable = true;
 
   programs.lutris = {
     enable = true;
