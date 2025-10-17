@@ -23,8 +23,23 @@
 
   # Builder-specific nix settings
   nix.settings = {
-    min-free = lib.mkDefault (1024 * 1024 * 1024); # 1GB
-    max-free = lib.mkDefault (5 * 1024 * 1024 * 1024); # 5GB
+    # Build parallelism - 8 cores, 32GB RAM
+    max-jobs = 4; # Run up to 4 builds in parallel
+    cores = 2; # Each build can use 2 cores (4 * 2 = 8 total)
+
+    # Garbage collection thresholds
+    min-free = lib.mkDefault (2 * 1024 * 1024 * 1024); # 2GB
+    max-free = lib.mkDefault (20 * 1024 * 1024 * 1024); # 20GB
+  };
+
+  # Number of build users for parallel builds
+  nix.nrBuildUsers = 32;
+
+  # Automatic garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
   };
 
   # Additional SSH key for nix-daemon
