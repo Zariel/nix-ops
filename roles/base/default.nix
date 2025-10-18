@@ -37,8 +37,7 @@
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  services.resolved.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
 
   # Locale and timezone
   time.timeZone = "Europe/London";
@@ -90,9 +89,13 @@
     smartmontools
   ];
 
+  programs.direnv.enable = true;
+  programs.fish.enable = lib.mkDefault true;
+
   # Services
   services.openssh.enable = true;
   services.prometheus.exporters.node.enable = true;
+  services.resolved.enable = true;
 
   # State version
   system.stateVersion = "25.05";

@@ -7,7 +7,7 @@
 {
   imports = [
     ./helix.nix
-    ./firefox.nix
+    # ./firefox.nix
   ];
 
   # Basic home configuration
@@ -21,17 +21,13 @@
   programs.fish.enable = true;
   programs.tmux.enable = true;
   # programs.atuin.enable = true;
-  programs.alacritty.enable = true;
   programs.fzf.enable = true;
   programs.zoxide.enable = true;
-
-  programs.lutris = {
-    enable = true;
-  };
+  programs.direnv.enable = true;
+  programs.ripgrep.enable = true;
 
   programs.nh = {
     enable = true;
-    osFlake = "/home/chris/nix-ops#nixosConfigurations.gaming";
   };
 
   home.packages = with pkgs; [
@@ -42,8 +38,6 @@
 
     curl
     shellcheck
-
-    ghostty
   ];
 
   # User-specific git configuration

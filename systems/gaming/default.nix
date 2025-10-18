@@ -25,6 +25,11 @@
     "split_lock_detect=off"
   ];
 
+  boot.kernel.sysctl = {
+    "vm.max_map_count" = 2147483642; # Required for many modern games
+    "fs.file-max" = 524288; # Increase file descriptor limit
+  };
+
   hardware.cpu.intel.updateMicrocode = true;
 
   nix = {
@@ -169,10 +174,26 @@
 
   programs.steam = {
     enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    gamescopeSession.enable = true;
     extraCompatPackages = with pkgs; [
       proton-cachyos_x86_64_v3
       proton-ge-custom
     ];
+  };
+
+  programs.gamemode = {
+    enable = true;
+    settings = {
+      general = {
+        renice = 10;
+      };
+      custom = {
+        start = "${pkgs.libnotify}/bin/notify-send 'GameMode started'";
+        end = "${pkgs.libnotify}/bin/notify-send 'GameMode ended'";
+      };
+    };
   };
 
   programs._1password.enable = true;
@@ -191,7 +212,20 @@
   hardware.amdgpu.initrd.enable = lib.mkDefault true;
 
   chaotic.mesa-git.enable = true;
+
   boot.loader.systemd-boot.memtest86.enable = true;
+
+  # Make Intel RAPL power usage readable for mangohud
+  systemd.services.make-rapl-readable = {
+    description = "Make Intel RAPL energy counter readable";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-udev-settle.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.coreutils}/bin/chmod 444 /sys/class/powercap/intel-rapl:0/energy_uj";
+      RemainAfterExit = true;
+    };
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -204,10 +238,17 @@
     pciutils
     gcc
     linux-firmware
-
+    # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
   ];
+
+  # AMD GPU optimizations and gaming environment
+  environment.sessionVariables = {
+    RADV_PERFTEST = "gpl,nggc"; # Enable GPL shader compilation and NGG culling
+    AMD_VULKAN_ICD = "RADV"; # Use RADV driver
+    MANGOHUD = "1"; # Enable MangoHud for all games by default
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
