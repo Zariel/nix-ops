@@ -177,6 +177,7 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     gamescopeSession.enable = true;
+    protontricks.enable = true;
     extraCompatPackages = with pkgs; [
       proton-cachyos_x86_64_v3
       proton-ge-custom
@@ -234,10 +235,13 @@
     nil
     htop
     btop
+    iotop
     lm_sensors
     pciutils
     gcc
     linux-firmware
+    file
+    lsof
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget

@@ -15,10 +15,13 @@
     gamescope # Valve's gaming compositor for FSR upscaling and frame limiting
     goverlay # GUI for MangoHud configuration
     protontricks # Manage Proton prefixes like winetricks
+    protonup-ng
 
     # Performance monitoring
     nvtopPackages.amd # GPU monitoring (htop-style for AMD)
     corectrl # AMD GPU/CPU control GUI
+
+    bottles
   ];
 
   programs.lutris = {

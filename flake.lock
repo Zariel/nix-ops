@@ -103,11 +103,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1760662441,
-        "narHash": "sha256-mlDqR1Ntgs9uYYEAUR1IhamKBO0lxoNS4zGLzEZaY0A=",
+        "lastModified": 1760809591,
+        "narHash": "sha256-OxGcFcQdfOK8veZkPdQuqXIotFYiy4sBQB58dMNLeHY=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "722792af097dff5790f1a66d271a47759f477755",
+        "rev": "870883ba11ba1c84f756c0c1f9fa74cdb2a16c1e",
         "type": "github"
       },
       "original": {
@@ -177,29 +177,13 @@
         "type": "github"
       }
     },
-    "nixpkgs-gamma": {
-      "locked": {
-        "lastModified": 1757202531,
-        "narHash": "sha256-H71hMjtqtwGhRkYB8Np9qE36G5WTTzHTVgapoThcXKA=",
-        "owner": "DrymarchonShaun",
-        "repo": "nixpkgs",
-        "rev": "309fdca2cc36f2939eb33a65eb2d95cbc510d5d9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "DrymarchonShaun",
-        "ref": "init-gamma-launcher",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1760596604,
-        "narHash": "sha256-J/i5K6AAz/y5dBePHQOuzC7MbhyTOKsd/GLezSbEFiM=",
+        "lastModified": 1760782043,
+        "narHash": "sha256-+4A1SFln9wOCoUZM0mQfKefP1uRVmjz6bV5SPbl1Q/4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3cbe716e2346710d6e1f7c559363d14e11c32a43",
+        "rev": "36226520e9f7a35bf341cbe3b6a1ff9047bec6d9",
         "type": "github"
       },
       "original": {
@@ -214,8 +198,7 @@
         "chaotic": "chaotic",
         "deploy-rs": "deploy-rs",
         "home-manager": "home-manager_2",
-        "nixpkgs": "nixpkgs_2",
-        "nixpkgs-gamma": "nixpkgs-gamma"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "rust-overlay": {
