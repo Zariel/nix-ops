@@ -98,6 +98,10 @@
       };
 
       deploy.nodes = {
+        builder = mkDeploy {
+          name = "builder";
+          addr = "10.1.1.155";
+        };
         dns1 = mkDeploy {
           name = "dns1";
           addr = "10.1.53.10";
@@ -109,10 +113,6 @@
         dns3 = mkDeploy {
           name = "dns3";
           addr = "10.1.53.12";
-        };
-        builder = mkDeploy {
-          name = "builder";
-          addr = "10.1.1.155";
         };
       };
 
