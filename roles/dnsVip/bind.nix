@@ -12,9 +12,8 @@ in
 {
   config = mkIf cfg.enable {
     services.bind = {
-      listenOn = [ "127.0.0.1" ];
-      listenOnIpv6 = [ "::1" ];
-      listenOnPort = 20053;
+      listenOn = [ "127.0.53.10" ];
+      ipv4Only = true;
 
       cacheNetworks = [
         "10.1.0.0/24" # LAN
@@ -82,6 +81,12 @@ in
           file = ./files/bind/zones/db.2.168.192.in-addr.arpa;
         };
       };
+    };
+
+    # Ensure bind starts after the bind interface is ready
+    systemd.services.bind = {
+      after = [ "sys-subsystem-net-devices-bind.device" ];
+      bindsTo = [ "sys-subsystem-net-devices-bind.device" ];
     };
   };
 }

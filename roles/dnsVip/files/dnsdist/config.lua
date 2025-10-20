@@ -27,7 +27,7 @@ setAPIWritable(false)
 
 -- Local Bind
 newServer({
-    address = "127.0.0.1:20053",
+    address = "127.0.53.10:53",
     pool = "bind",
     reconnectOnUp = true,
     healthCheckMode = "lazy",
@@ -64,7 +64,7 @@ newServer({
 
 -- Local Blocky
 newServer({
-    address = "127.0.0.1:10053",
+    address = "127.0.53.20:53",
     pool = "blocky",
     reconnectOnUp = true,
     healthCheckMode = "lazy",

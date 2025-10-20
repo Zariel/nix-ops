@@ -14,7 +14,7 @@ in
     services.blocky = {
       settings = {
         ports = {
-          dns = 10053;
+          dns = "127.0.53.20:53";
           http = 4000;
         };
 
@@ -69,6 +69,12 @@ in
           ];
         };
       };
+    };
+
+    # Ensure blocky starts after the blocky interface is ready
+    systemd.services.blocky = {
+      after = [ "sys-subsystem-net-devices-blocky.device" ];
+      bindsTo = [ "sys-subsystem-net-devices-blocky.device" ];
     };
   };
 }

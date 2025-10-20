@@ -30,7 +30,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Configure VIP dummy interface
+    # Configure VIP dummy interfaces
     systemd.network = {
       enable = true;
 
@@ -48,6 +48,34 @@ in
           "172.53.53.53/32"
           "fd74:f571:d3bd:53::53/128"
         ];
+      };
+
+      # Bind dummy interface
+      netdevs."11-bind" = {
+        netdevConfig = {
+          Kind = "dummy";
+          Name = "bind";
+        };
+      };
+
+      networks."21-bind" = {
+        matchConfig.Name = "bind";
+        networkConfig.ConfigureWithoutCarrier = true;
+        address = [ "127.0.53.10/32" ];
+      };
+
+      # Blocky dummy interface
+      netdevs."12-blocky" = {
+        netdevConfig = {
+          Kind = "dummy";
+          Name = "blocky";
+        };
+      };
+
+      networks."22-blocky" = {
+        matchConfig.Name = "blocky";
+        networkConfig.ConfigureWithoutCarrier = true;
+        address = [ "127.0.53.20/32" ];
       };
     };
 

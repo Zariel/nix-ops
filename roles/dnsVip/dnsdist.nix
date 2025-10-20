@@ -17,10 +17,15 @@ in
       extraConfig = (builtins.readFile ./files/dnsdist/config.lua);
     };
 
-    # Ensure dnsdist starts after the dnsvip interface is ready
+    # Ensure dnsdist starts after the dnsvip interface is ready and after bind/blocky are running
     systemd.services.dnsdist = {
-      after = [ "sys-subsystem-net-devices-dnsvip.device" ];
+      after = [
+        "sys-subsystem-net-devices-dnsvip.device"
+        "bind.service"
+        "blocky.service"
+      ];
       bindsTo = [ "sys-subsystem-net-devices-dnsvip.device" ];
+      wants = [ "bind.service" "blocky.service" ];
     };
   };
 }
