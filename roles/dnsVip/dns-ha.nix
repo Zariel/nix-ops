@@ -31,8 +31,9 @@ let
 
     check_dns_health() {
       # Query dnsdist on localhost health check listener
-      # This works regardless of OSPF advertisement state
-      if timeout "$DNS_TIMEOUT" ${pkgs.dnsutils}/bin/dig @127.0.0.1 -p "$HEALTH_CHECK_PORT" google.com +short +tries=1 > /dev/null 2>&1; then
+      # Uses gateway.cbannister.casa (local Bind zone) to test dnsdist -> bind chain
+      # This ensures health check passes when local DNS works, even if internet is down
+      if timeout "$DNS_TIMEOUT" ${pkgs.dnsutils}/bin/dig @127.0.0.1 -p "$HEALTH_CHECK_PORT" gateway.cbannister.casa +short +tries=1 > /dev/null 2>&1; then
         return 0
       else
         return 1
