@@ -16,14 +16,24 @@
       "nix-command"
       "flakes"
     ];
+
+    # Tarball cache TTL - keep flake inputs cached for 7 days
+    # This allows offline deployments as long as flake.lock hasn't changed
+    # and the cache was warmed within the last week
+    tarball-ttl = 604800; # 7 days in seconds
+
     # Binary cache settings
-    substituters = lib.mkAfter [
-      "http://10.1.1.155:5000"
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-unfree.cachix.org"
-      "https://cachix.cachix.org"
-      "https://cache.garnix.io"
-    ];
+    # Builder should not use itself as a substitutor (circular dependency)
+    substituters = lib.mkAfter (
+      lib.optionals (config.networking.hostName != "nix-builder") [
+        "http://10.1.1.155:5000"
+      ] ++ [
+        "https://nix-community.cachix.org"
+        "https://nixpkgs-unfree.cachix.org"
+        "https://cachix.cachix.org"
+        "https://cache.garnix.io"
+      ]
+    );
 
     trusted-public-keys = lib.mkAfter [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

@@ -62,4 +62,79 @@
       bind = "0.0.0.0:5000";
     };
   };
+
+  # Cache warming service - periodically builds all system configurations
+  # This ensures Harmonia's cache stays warm for offline deployments
+  systemd.services.cache-warmer = {
+    description = "Build all NixOS configurations to warm Harmonia cache";
+    path = with pkgs; [
+      nix
+      git
+      jq
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "chris";
+      TimeoutSec = "4h"; # Allow time for first run downloads/builds
+    };
+    script = ''
+      set -e
+
+      REPO_DIR="/home/chris/nix-ops"
+
+      # Clone or update repository
+      if [ ! -d "$REPO_DIR" ]; then
+        echo "Cloning nix-ops repository..."
+        git clone https://github.com/Zariel/nix-ops.git "$REPO_DIR" || {
+          echo "Failed to clone repository, skipping this run"
+          exit 0
+        }
+      else
+        echo "Updating nix-ops repository..."
+        cd "$REPO_DIR"
+        git pull || {
+          echo "Failed to pull updates, using existing version"
+        }
+      fi
+
+      cd "$REPO_DIR"
+
+      # Build all system configurations
+      # Builds are stored in /nix/store and served by Harmonia
+      echo "Discovering nixosConfigurations from flake..."
+      SYSTEMS=$(nix eval "$REPO_DIR#nixosConfigurations" --apply builtins.attrNames --json | jq -r '.[]')
+
+      if [ -z "$SYSTEMS" ]; then
+        echo "Error: No systems found in flake"
+        exit 1
+      fi
+
+      echo "Found systems: $(echo $SYSTEMS | tr '\n' ' ')"
+      echo "Building system configurations..."
+
+      for system in $SYSTEMS; do
+        echo "Building $system..."
+        nix build ".#nixosConfigurations.$system.config.system.build.toplevel" \
+          --print-build-logs \
+          --keep-going || {
+          echo "Warning: Failed to build $system, continuing..."
+        }
+      done
+
+      echo "Cache warming complete - all builds available via Harmonia at http://10.1.1.155:5000"
+    '';
+  };
+
+  systemd.timers.cache-warmer = {
+    description = "Timer for periodic cache warming builds";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      # Run hourly
+      OnCalendar = "hourly";
+      # Run on boot if missed during downtime
+      Persistent = true;
+      # Randomize start time within 5 minutes to avoid thundering herd
+      RandomizedDelaySec = "5m";
+    };
+  };
 }
