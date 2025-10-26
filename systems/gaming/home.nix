@@ -16,12 +16,13 @@
     goverlay # GUI for MangoHud configuration
     protontricks # Manage Proton prefixes like winetricks
     protonup-ng
+    umu-launcher
 
     # Performance monitoring
     nvtopPackages.amd # GPU monitoring (htop-style for AMD)
     corectrl # AMD GPU/CPU control GUI
 
-    bottles
+    deploy-rs
   ];
 
   programs.lutris = {
@@ -54,4 +55,23 @@
   programs.claude-code.enable = true;
 
   xdg.autostart.enable = true;
+
+  systemd.user.services.onepassword = {
+    Unit = {
+      Description = "1Password";
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.writeShellScript "1password-start" ''
+        # Wait for desktop session to fully initialize
+        sleep 2
+        exec ${pkgs._1password-gui}/bin/1password --silent
+      ''}";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
 }

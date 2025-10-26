@@ -38,8 +38,10 @@
       {
         hostName = "builder.cbannister.casa";
         system = "x86_64-linux";
-        # sshUser = "chris";
-        protocol = "ssh-ng";
+        sshUser = "chris";
+        protocol = "ssh";
+        maxJobs = 4; # Limit remote jobs to match builder capacity
+        speedFactor = 2; # Prefer remote builder (higher = more preferred)
         supportedFeatures = [
           "nixos-test"
           "benchmark"
@@ -50,6 +52,9 @@
     ];
 
     settings = {
+      # Local build parallelism - with 20 cores, run multiple builds locally too
+      max-jobs = 8; # Run up to 8 builds in parallel (local + remote combined)
+      cores = 0; # Let each build use all available cores (auto-detected)
       auto-optimise-store = true;
       trusted-users = [
         "root"
@@ -80,7 +85,7 @@
 
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  # boot.kernelPackages = pkgs.linuxPackages_cachyos-lto;
+  # boot.kernelPackages = pkgs.linuxPackages_cachyos.cachyOverride { mArch = "GENERIC_V3"; };
 
   networking.hostName = "gaming"; # Define your hostname.
 
@@ -130,6 +135,11 @@
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  security.pam.yubico = {
+    enable = true;
+    id = "18293395";
+  };
+
   services.fwupd.enable = true;
   services.pipewire = {
     enable = true;
@@ -242,6 +252,8 @@
     linux-firmware
     file
     lsof
+    usbutils
+    fio
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
