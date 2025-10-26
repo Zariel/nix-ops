@@ -28,13 +28,13 @@
     substituters = lib.mkBefore (
       lib.optionals (config.networking.hostName != "nix-builder") [
         "http://10.1.1.155:5000"
+      ] ++ [
+        "https://nix-community.cachix.org"
+        "https://nixpkgs-unfree.cachix.org"
+        "https://cachix.cachix.org"
+        "https://cache.garnix.io"
       ]
-    ) ++ [
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-unfree.cachix.org"
-      "https://cachix.cachix.org"
-      "https://cache.garnix.io"
-    ];
+    );
 
     trusted-public-keys = lib.mkAfter [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
