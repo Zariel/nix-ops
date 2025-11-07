@@ -18,10 +18,21 @@ in
           http = 4000;
         };
 
-        upstreams.groups.default = [
-          "tcp-tls:1.1.1.1:853"
-          "tcp-tls:1.0.0.1:853"
-        ];
+        upstreams = {
+          groups.default = [
+            "tcp-tls:1.1.1.1:853" # Cloudflare primary
+            "tcp-tls:1.0.0.1:853" # Cloudflare secondary
+            "tcp-tls:8.8.8.8:853" # Google DNS primary
+            "tcp-tls:9.9.9.9:853" # Quad9 (privacy-focused, DNSSEC)
+          ];
+
+          # Explicitly enable parallel query hedging for reliability
+          # Picks 2 random upstreams per query, returns fastest response
+          strategy = "parallel_best";
+
+          # Timeout per upstream query attempt (1s is reasonable for hedged DoT queries)
+          timeout = "1s";
+        };
 
         ecs.useAsClient = true;
 
