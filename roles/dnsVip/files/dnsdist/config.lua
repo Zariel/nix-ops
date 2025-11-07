@@ -103,7 +103,7 @@ newServer({
     pool = "cloudflare"
 })
 
--- Enable caching
+-- Enable caching for all upstream pools
 pc = newPacketCache(1000000, {
     maxTTL = 86400,
     minTTL = 0,
@@ -111,8 +111,8 @@ pc = newPacketCache(1000000, {
     staleTTL = 60,
     dontAge = false
 })
--- getPool("blocky"):setCache(pc)
-getPool("cloudflare"):setCache(pc)
+getPool("blocky"):setCache(pc)      -- Cache blocky queries (ad-blocking + hedged upstreams)
+getPool("cloudflare"):setCache(pc)  -- Cache direct Cloudflare queries
 
 -- addAction(AllRule(), LogAction("", false, false, true, false, false))
 -- addResponseAction(AllRule(), LogResponseAction("", false, true, false, false))
