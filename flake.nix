@@ -12,6 +12,9 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -21,6 +24,7 @@
       home-manager,
       deploy-rs,
       chaotic,
+      disko,
       ...
     }@inputs:
     let
@@ -49,6 +53,43 @@
             sshUser = "chris";
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.${name};
+
+            # Extended timeouts for OSPF adjacency formation during deployments
+            activationTimeout = 300; # 5 minutes (allows for OSPF convergence)
+            confirmTimeout = 45; # 45 seconds (slightly longer than default 30s)
+
+            # Enable automatic rollback on failure
+            magicRollback = true;
+            autoRollback = true;
+          };
+        };
+
+      mkHome =
+        {
+          config,
+          ...
+        }:
+        let
+          hostHome = builtins.path {
+            path = "${toString ./systems}/${config.networking.hostName}/home.nix";
+          };
+        in
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users.chris = {
+              imports = [
+                ./homes/chris
+                hostHome
+              ];
+            };
+            extraSpecialArgs = {
+              inherit
+                inputs
+                self
+                ;
+            };
           };
         };
     in
@@ -75,24 +116,16 @@
           extraModules = [
             chaotic.nixosModules.default
             home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.chris = {
-                  imports = [
-                    ./homes/chris
-                    ./systems/gaming/home.nix
-                  ];
-                };
-                extraSpecialArgs = {
-                  inherit
-                    inputs
-                    self
-                    ;
-                };
-              };
-            }
+            mkHome
+          ];
+        };
+        dev = mkSystem {
+          name = "dev";
+          extraModules = [
+            disko.nixosModules.disko
+            ./roles/server
+            home-manager.nixosModules.home-manager
+            mkHome
           ];
         };
       };
@@ -113,6 +146,10 @@
         dns3 = mkDeploy {
           name = "dns3";
           addr = "10.1.53.12";
+        };
+        dev = mkDeploy {
+          name = "dev";
+          addr = "10.1.2.15";
         };
       };
 
