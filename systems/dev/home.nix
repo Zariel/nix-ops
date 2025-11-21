@@ -1,4 +1,4 @@
-{ pkgs, osConfig, ... }:
+{ pkgs, ... }:
 {
 
   home.packages = with pkgs; [
@@ -8,4 +8,5 @@
     deploy-rs
   ];
 
+  programs.helix.settings.editor.true-color = true;
 }
