@@ -1,14 +1,23 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 {
   imports = [
     ./helix.nix
+    ./fish.nix
+    ./tmux.nix
     # ./firefox.nix
   ];
+
+  home.file = {
+    ".ssh/rc".text = ''
+      if test "$SSH_AUTH_SOCK" ; then
+        ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
+        tmux set-environment -g SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock >/dev/null 2>&1 || true
+      fi
+    '';
+  };
 
   # Basic home configuration
   home = {
@@ -18,24 +27,31 @@
   };
 
   # Enable modules
-  programs.fish.enable = true;
+  programs.fd.enable = true;
+  programs.bat.enable = true;
   programs.tmux.enable = true;
-  # programs.atuin.enable = true;
   programs.fzf.enable = true;
   programs.zoxide.enable = true;
-  programs.direnv.enable = true;
   programs.ripgrep.enable = true;
+  programs.eza.enable = true;
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
 
   programs.nh = {
     enable = true;
   };
 
+  programs.codex = {
+    enable = true;
+  };
+
   home.packages = with pkgs; [
     doggo
-    ripgrep
     gnugrep
     gnused
-
     curl
     shellcheck
   ];
@@ -46,4 +62,6 @@
     userName = "Chris Bannister";
     userEmail = "c.bannister@gmail.com";
   };
+
+  services.ssh-agent.enable = true;
 }
