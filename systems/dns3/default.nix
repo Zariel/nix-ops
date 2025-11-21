@@ -8,6 +8,6 @@
 
   services.dnsVip = {
     enable = true;
-    nodeIp = "10.1.53.12";
+    nodeIp = "10.254.53.4";
   };
 }

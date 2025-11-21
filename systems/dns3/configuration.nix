@@ -7,8 +7,8 @@
     enable = true;
     networks."10-lan" = {
       matchConfig.Name = "ens*";
-      address = [ "10.1.53.12/24" ];
-      gateway = [ "10.1.53.1" ];
+      address = [ "10.254.53.4/31" ];
+      gateway = [ "10.254.53.5" ];
       dns = [ "1.1.1.1" ];
 
       networkConfig = {

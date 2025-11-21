@@ -40,7 +40,7 @@ in
 
           area 0.0.0.0 {
             interface "ens*" {
-              type broadcast;
+              type pointopoint;
               cost 10;
             };
           };
@@ -69,7 +69,7 @@ in
 
           area 0.0.0.0 {
             interface "ens*" {
-              type broadcast;
+              type pointopoint;
               cost 10;
             };
           };

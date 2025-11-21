@@ -25,7 +25,7 @@ in
     nodeIp = mkOption {
       type = types.str;
       description = "Node IP address (used for BIRD router-id and health check identification)";
-      example = "10.1.53.10";
+      example = "10.254.53.0";
     };
   };
 
