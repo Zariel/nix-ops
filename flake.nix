@@ -137,15 +137,15 @@
         };
         dns1 = mkDeploy {
           name = "dns1";
-          addr = "10.1.53.10";
+          addr = "10.254.53.0";
         };
         dns2 = mkDeploy {
           name = "dns2";
-          addr = "10.1.53.11";
+          addr = "10.254.53.2";
         };
         dns3 = mkDeploy {
           name = "dns3";
-          addr = "10.1.53.12";
+          addr = "10.254.53.4";
         };
         dev = mkDeploy {
           name = "dev";

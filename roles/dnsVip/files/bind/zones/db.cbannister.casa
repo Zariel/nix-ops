@@ -34,6 +34,6 @@ gaming                   IN  A  10.1.2.15
 k8s                      IN  A  10.45.0.100
 builder                  IN  A  10.1.1.155
 
-dns1 IN A 10.1.53.10
-dns2 IN A 10.1.53.11
-dns3 IN A 10.1.53.12
+dns1 IN A 10.254.53.0
+dns2 IN A 10.254.53.2
+dns3 IN A 10.254.53.4
