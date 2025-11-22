@@ -51,15 +51,14 @@ DNSdist performs "lazy" health checks on backends:
 - Automatically routes around failed backends
 
 **Routing Rules** (processed in order):
-1. Guest VLAN (`192.168.2.0/24`) → Blocky
-2. Special blocks (resolver.arpa, icloud masks) → NXDOMAIN
-3. Domain-based routing:
+1. Special blocks (resolver.arpa, icloud masks) → NXDOMAIN
+2. Domain-based routing:
    - `unifi`, `cbannister.casa` → Bind
    - `cbannister.xyz` → K8s
    - Reverse DNS zones → Bind
-4. Source IP routing:
-   - IoT networks → Blocky
-   - Trusted networks → Blocky
+3. Source IP routing:
+   - Guest/Trusted/IoT/WireGuard networks → Prefer Blocky, then transparently fall back to Cloudflare if the Blocky pool is empty
+   - LAN/Servers/K8s overlay networks → Cloudflare
    - Default → Cloudflare
 
 ### 4. BIRD (OSPF Routing)

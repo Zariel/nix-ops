@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -86,6 +87,18 @@ in
     systemd.services.blocky = {
       after = [ "sys-subsystem-net-devices-blocky.device" ];
       bindsTo = [ "sys-subsystem-net-devices-blocky.device" ];
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = "5s";
+        StartLimitIntervalSec = 60;
+        StartLimitBurst = 5;
+        TimeoutStartSec = "30s";
+        ExecStartPre = pkgs.writeShellScript "blocky-preflight" ''
+          set -euo pipefail
+          # Sanity check that the packaged binary exists before start
+          test -x ${pkgs.blocky}/bin/blocky
+        '';
+      };
     };
   };
 }

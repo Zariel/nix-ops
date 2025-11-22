@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -8,6 +9,18 @@ with lib;
 
 let
   cfg = config.services.dnsVip;
+  bindZoneChecks =
+    attrsets.mapAttrsToList
+      (zoneName: zoneCfg:
+        "${pkgs.bind}/bin/named-checkzone ${zoneName} ${zoneCfg.file}"
+      )
+      config.services.bind.zones;
+
+  bindPreflight = pkgs.writeShellScript "bind-preflight" ''
+    set -euo pipefail
+    ${pkgs.bind}/bin/named-checkconf ${config.services.bind.configFile}
+    ${concatStringsSep "\n    " bindZoneChecks}
+  '';
 in
 {
   config = mkIf cfg.enable {
@@ -87,6 +100,14 @@ in
     systemd.services.bind = {
       after = [ "sys-subsystem-net-devices-bind.device" ];
       bindsTo = [ "sys-subsystem-net-devices-bind.device" ];
+      serviceConfig = {
+        ExecStartPre = bindPreflight;
+        Restart = "on-failure";
+        RestartSec = "5s";
+        StartLimitIntervalSec = 60;
+        StartLimitBurst = 5;
+        TimeoutStartSec = "30s";
+      };
     };
   };
 }

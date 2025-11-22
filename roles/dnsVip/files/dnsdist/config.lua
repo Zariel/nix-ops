@@ -41,7 +41,6 @@ newServer({
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
     lazyHealthCheckMinSampleCount = 10,
-    lazyHealthCheckMode = 'TimeoutOnly',
     useClientSubnet = true
 })
 
@@ -55,10 +54,12 @@ newServer({
     lazyHealthCheckFailedInterval = 30,
     rise = 2,
     maxCheckFailures = 3,
+    checkType = 'SOA',
+    checkName = 'cbannister.xyz.',
+    mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
     lazyHealthCheckMinSampleCount = 10,
-    lazyHealthCheckMode = 'TimeoutOnly',
     useClientSubnet = true
 })
 
@@ -68,14 +69,16 @@ newServer({
     pool = "blocky",
     reconnectOnUp = true,
     healthCheckMode = "lazy",
-    checkInterval = 30,
+    checkInterval = 5,
     maxCheckFailures = 3,
     lazyHealthCheckFailedInterval = 30,
     rise = 2,
+    checkType = 'A',
+    checkName = 'cloudflare-dns.com.',
+    mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
     lazyHealthCheckMinSampleCount = 10,
-    lazyHealthCheckMode = 'TimeoutOnly',
     useClientSubnet = true
 })
 -- Blocky will be given requester IP
@@ -88,8 +91,18 @@ newServer({
     reconnectOnUp = true,
     subjectName = "cloudflare-dns.com",
     validateCertificates = true,
+    healthCheckMode = "lazy",
     checkInterval = 10,
     checkTimeout = 2000,
+    checkType = 'A',
+    checkName = 'cloudflare-dns.com.',
+    mustResolve = true,
+    rise = 2,
+    maxCheckFailures = 3,
+    lazyHealthCheckFailedInterval = 30,
+    lazyHealthCheckThreshold = 30,
+    lazyHealthCheckSampleSize = 100,
+    lazyHealthCheckMinSampleCount = 10,
     pool = "cloudflare"
 })
 newServer({
@@ -98,8 +111,18 @@ newServer({
     reconnectOnUp = true,
     subjectName = "cloudflare-dns.com",
     validateCertificates = true,
+    healthCheckMode = "lazy",
     checkInterval = 10,
     checkTimeout = 2000,
+    checkType = 'A',
+    checkName = 'cloudflare-dns.com.',
+    mustResolve = true,
+    rise = 2,
+    maxCheckFailures = 3,
+    lazyHealthCheckFailedInterval = 30,
+    lazyHealthCheckThreshold = 30,
+    lazyHealthCheckSampleSize = 100,
+    lazyHealthCheckMinSampleCount = 10,
     pool = "cloudflare"
 })
 
@@ -116,8 +139,6 @@ getPool("cloudflare"):setCache(pc)  -- Cache direct Cloudflare queries
 
 -- addAction(AllRule(), LogAction("", false, false, true, false, false))
 -- addResponseAction(AllRule(), LogResponseAction("", false, true, false, false))
-
-addAction("192.168.2.0/24", PoolAction("blocky")) -- guest vlan
 
 -- block responding to this so that downstream clients cant discover upstream resolvers
 -- that bypass blocky.
@@ -144,14 +165,29 @@ addAction({
     '2.168.192.in-addr.arpa'  -- GUEST reverse
 }, PoolAction('bind'))
 
-addAction("10.1.3.0/24", PoolAction("blocky"))     -- iot
+local blockySubnets = {
+    "192.168.2.0/24",          -- guest vlan
+    "10.1.2.0/24",             -- trusted
+    "fd74:f571:d3bd:20::/64",  -- trusted v6
+    "10.1.3.0/24",             -- iot
+    "fd74:f571:d3bd:40::/64",  -- iot v6
+    "10.0.11.0/24"             -- wireguard
+}
+
+local blockyClientRule = NetmaskGroupRule(blockySubnets)
+
+addAction(
+    AndRule({blockyClientRule, PoolAvailableRule("blocky")}),
+    PoolAction("blocky")
+)
+addAction(
+    AndRule({blockyClientRule, NotRule(PoolAvailableRule("blocky"))}),
+    PoolAction("cloudflare")
+)
+
 addAction("10.1.0.0/24", PoolAction("cloudflare")) -- lan
 addAction("10.1.8.0/24", PoolAction("cloudflare"))
 addAction({"10.1.1.0/24", "10.254.1.0/24"},  PoolAction("cloudflare"))     -- servers
-addAction({"10.1.2.0/24", "fd74:f571:d3bd:20::/64"}, PoolAction("blocky"))     -- trusted
-addAction({"10.1.3.0/24", "fd74:f571:d3bd:40::/64"}, PoolAction("blocky"))     -- iot
-
-addAction("10.0.11.0/24", PoolAction("blocky"))    -- wireguard
 addAction({'10.42.0.0/16', '172.20.0.0/16'}, PoolAction('cloudflare'))
 
 addAction('127.0.0.1', PoolAction('cloudflare'))
