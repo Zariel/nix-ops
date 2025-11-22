@@ -34,8 +34,8 @@ in
         "10.1.2.0/24" # TRUSTED
         "10.1.3.0/24" # IOT
         "192.168.2.0/24" # GUEST
-        "10.5.0.0/24" # CONTAINERS
-        "10.254.1.0/24" # L3 servers
+        "10.5.0.0/24" # VYOS CONTAINERS
+        "10.254.0.0/16" # L3 servers
       ];
 
       extraConfig = ''
