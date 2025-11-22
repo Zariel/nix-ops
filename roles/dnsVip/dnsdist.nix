@@ -31,8 +31,14 @@ in
         "blocky.service"
       ];
       bindsTo = [ "sys-subsystem-net-devices-dnsvip.device" ];
-      requires = [ "bind.service" "blocky.service" ];
-      wants = [ "bind.service" "blocky.service" ];
+      requires = [
+        "bind.service"
+        "blocky.service"
+      ];
+      wants = [
+        "bind.service"
+        "blocky.service"
+      ];
       serviceConfig = {
         ExecStartPre = dnsdistConfigCheck;
         Restart = "on-failure";

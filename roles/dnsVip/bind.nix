@@ -9,12 +9,9 @@ with lib;
 
 let
   cfg = config.services.dnsVip;
-  bindZoneChecks =
-    attrsets.mapAttrsToList
-      (zoneName: zoneCfg:
-        "${pkgs.bind}/bin/named-checkzone ${zoneName} ${zoneCfg.file}"
-      )
-      config.services.bind.zones;
+  bindZoneChecks = attrsets.mapAttrsToList (
+    zoneName: zoneCfg: "${pkgs.bind}/bin/named-checkzone ${zoneName} ${zoneCfg.file}"
+  ) config.services.bind.zones;
 
   bindPreflight = pkgs.writeShellScript "bind-preflight" ''
     set -euo pipefail

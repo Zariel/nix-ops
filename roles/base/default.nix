@@ -28,7 +28,8 @@
     substituters = lib.mkBefore (
       lib.optionals (config.networking.hostName != "nix-builder") [
         "http://10.1.1.155:5000"
-      ] ++ [
+      ]
+      ++ [
         "https://nix-community.cachix.org"
         "https://nixpkgs-unfree.cachix.org"
         "https://cachix.cachix.org"
