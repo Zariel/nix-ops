@@ -41,6 +41,8 @@ in
           area 0.0.0.0 {
             interface "ens*" {
               type pointopoint;
+              hello 1;
+              dead 3;
               cost 10;
             };
           };

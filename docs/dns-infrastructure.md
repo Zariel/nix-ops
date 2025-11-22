@@ -81,13 +81,13 @@ Example for `dns1` (repeat for `dns2`/`dns3` with the appropriate VLAN ID, switc
 ```text
 conf t
 !
-vlan 5310 name DNS1-PTP
- untagged ethernet 1/1/5          ! Port facing the dns1 Proxmox NIC
+vlan 3101 name DNS1-PTP
+ tagged ethernet 1/2/6          ! Port facing the dns1 Proxmox NIC
  exit
 !
-interface ve 5310
+interface ve 3101
  ip address 10.254.53.1 255.255.255.254
- ip ospf area 0.0.0.0
+ ip ospf area 0
  ip ospf network point-to-point
  ip ospf hello-interval 1
  ip ospf dead-interval 3
