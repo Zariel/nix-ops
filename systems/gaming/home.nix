@@ -23,6 +23,7 @@
     corectrl # AMD GPU/CPU control GUI
 
     deploy-rs
+    obsidian
   ];
 
   programs.lutris = {

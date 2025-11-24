@@ -23,6 +23,9 @@
     "intel_idle.max_cstate=1"
     "processor.max_cstate=1"
     "split_lock_detect=off"
+    # "amdgpu.freesync_video=1" # Enable FreeSync for video playback
+    "amdgpu.dc=1"  # Explicitly enable Display Core (required for DSC)
+    # "amdgpu.dc_log=1"  # Uncomment to enable verbose DC debug logging
   ];
 
   boot.kernel.sysctl = {
@@ -114,10 +117,21 @@
 
   # Enable the X11 windowing system.
   # You can disable this if you're only using the Wayland session.
-  services.xserver.enable = true;
+  services.xserver = {
+    enable = true;
+    videoDrivers = [ "amdgpu" ];
+    # X11 VRR fallback configuration (Wayland has native VRR support)
+    deviceSection = ''
+      Option "VariableRefresh" "true"
+      Option "TearFree" "false"
+    '';
+  };
 
   # Enable the KDE Plasma Desktop Environment.
-  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true; # Enable Wayland for better VRR support
+  };
   services.desktopManager.plasma6.enable = true;
 
   # Configure keymap in X11
@@ -254,6 +268,7 @@
     lsof
     usbutils
     fio
+    cups-brother-mfcl2800dw
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
