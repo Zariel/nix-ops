@@ -4,6 +4,7 @@
 }:
 {
   imports = [
+    ../modules/anomaly-mods.nix
     ./helix.nix
     ./fish.nix
     ./tmux.nix

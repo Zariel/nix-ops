@@ -24,7 +24,7 @@
     "processor.max_cstate=1"
     "split_lock_detect=off"
     # "amdgpu.freesync_video=1" # Enable FreeSync for video playback
-    "amdgpu.dc=1"  # Explicitly enable Display Core (required for DSC)
+    "amdgpu.dc=1" # Explicitly enable Display Core (required for DSC)
     # "amdgpu.dc_log=1"  # Uncomment to enable verbose DC debug logging
   ];
 

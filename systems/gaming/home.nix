@@ -1,4 +1,9 @@
-{ pkgs, osConfig, ... }:
+{
+  config,
+  pkgs,
+  osConfig,
+  ...
+}:
 {
 
   home.packages = with pkgs; [
@@ -25,6 +30,14 @@
     deploy-rs
     obsidian
   ];
+
+  programs.anomalyMods = {
+    enable = true;
+    baseDir = "${config.home.homeDirectory}/games/anomaly";
+    versions."v1.5.3" = [
+      { name = "gamma"; }
+    ];
+  };
 
   programs.lutris = {
     enable = true;
