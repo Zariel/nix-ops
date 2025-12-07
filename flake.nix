@@ -111,6 +111,13 @@
           name = "builder";
           extraModules = [ ./roles/server ];
         };
+        matchbox = mkSystem {
+          name = "matchbox";
+          extraModules = [
+            ./roles/server
+            disko.nixosModules.disko
+          ];
+        };
         gaming = mkSystem {
           name = "gaming";
           extraModules = [
@@ -150,6 +157,10 @@
         dev = mkDeploy {
           name = "dev";
           addr = "10.1.2.15";
+        };
+        matchbox = mkDeploy {
+          name = "matchbox";
+          addr = "10.1.1.20";
         };
       };
 
