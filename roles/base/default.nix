@@ -70,7 +70,7 @@
   # Keyboard configuration
   services.xserver.xkb = {
     layout = "gb";
-    variant = "";
+    variant = lib.mkDefault "";
   };
   console.keyMap = "uk";
 

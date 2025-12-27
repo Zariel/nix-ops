@@ -20,8 +20,10 @@
     gamescope # Valve's gaming compositor for FSR upscaling and frame limiting
     goverlay # GUI for MangoHud configuration
     protontricks # Manage Proton prefixes like winetricks
-    protonup-ng
+    # protonup-ng
+    # protonup-qt
     umu-launcher
+    heroic
 
     # Performance monitoring
     nvtopPackages.amd # GPU monitoring (htop-style for AMD)
@@ -29,6 +31,13 @@
 
     deploy-rs
     obsidian
+    vlc
+
+    makemkv
+    dovi-tool
+    mediainfo
+    ffmpeg
+    mkvtoolnix-cli
   ];
 
   programs.anomalyMods = {
@@ -44,6 +53,17 @@
     steamPackage = osConfig.programs.steam.package;
     winePackages = with pkgs; [
       wineWowPackages.full
+    ];
+    protonPackages = with pkgs; [
+      proton-ge-bin
+    ];
+    extraPackages = with pkgs; [
+      mangohud
+      winetricks
+      gamescope
+      gamemode
+      umu-launcher
+      vulkan-tools
     ];
   };
 
@@ -65,8 +85,6 @@
   };
 
   programs.nh.osFlake = "/home/chris/nix-ops#nixosConfigurations.gaming";
-
-  programs.claude-code.enable = true;
 
   xdg.autostart.enable = true;
 

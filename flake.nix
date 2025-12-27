@@ -1,7 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -23,7 +22,6 @@
       nixpkgs,
       home-manager,
       deploy-rs,
-      chaotic,
       disko,
       ...
     }@inputs:
@@ -121,7 +119,6 @@
         gaming = mkSystem {
           name = "gaming";
           extraModules = [
-            chaotic.nixosModules.default
             home-manager.nixosModules.home-manager
             mkHome
           ];

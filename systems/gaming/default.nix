@@ -16,21 +16,46 @@
   ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+      timeout = 0;
+    };
 
-  boot.kernelParams = [
-    "intel_idle.max_cstate=1"
-    "processor.max_cstate=1"
-    "split_lock_detect=off"
-    # "amdgpu.freesync_video=1" # Enable FreeSync for video playback
-    "amdgpu.dc=1" # Explicitly enable Display Core (required for DSC)
-    # "amdgpu.dc_log=1"  # Uncomment to enable verbose DC debug logging
-  ];
+    plymouth = {
+      enable = true;
+      theme = "rings";
+      themePackages = with pkgs; [
+        # By default we would install all themes
+        (adi1090x-plymouth-themes.override {
+          selected_themes = [ "rings" ];
+        })
+      ];
+    };
 
-  boot.kernel.sysctl = {
-    "vm.max_map_count" = 2147483642; # Required for many modern games
-    "fs.file-max" = 524288; # Increase file descriptor limit
+    consoleLogLevel = 3;
+    initrd.verbose = false;
+    kernelParams = [
+      "intel_idle.max_cstate=1"
+      "processor.max_cstate=1"
+      "split_lock_detect=off"
+      # "amdgpu.freesync_video=1" # Enable FreeSync for video playback
+      "amdgpu.dc=1" # Explicitly enable Display Core (required for DSC)
+      # "amdgpu.dc_log=1"  # Uncomment to enable verbose DC debug logging
+
+      "quiet"
+      "splash"
+      "boot.shell_on_fail"
+      "udev.log_priority=3"
+      "rd.systemd.show_status=auto"
+      "amdgpu.seamless=1"
+    ];
+
+    kernel.sysctl = {
+      "vm.max_map_count" = 2147483642; # Required for many modern games
+      "fs.file-max" = 524288; # Increase file descriptor limit
+    };
   };
 
   hardware.cpu.intel.updateMicrocode = true;
@@ -88,7 +113,6 @@
 
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  # boot.kernelPackages = pkgs.linuxPackages_cachyos.cachyOverride { mArch = "GENERIC_V3"; };
 
   networking.hostName = "gaming"; # Define your hostname.
 
@@ -137,7 +161,8 @@
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "gb";
-    variant = "";
+    variant = "mac";
+    model = "pc105";
   };
 
   # Configure console keymap
@@ -178,6 +203,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "gamemode"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
@@ -202,9 +228,11 @@
     dedicatedServer.openFirewall = true;
     gamescopeSession.enable = true;
     protontricks.enable = true;
+    extraPackages = with pkgs; [
+      gamemode
+    ];
     extraCompatPackages = with pkgs; [
-      proton-cachyos_x86_64_v3
-      proton-ge-custom
+      proton-ge-bin
     ];
   };
 
@@ -235,8 +263,6 @@
   };
 
   hardware.amdgpu.initrd.enable = lib.mkDefault true;
-
-  chaotic.mesa-git.enable = true;
 
   boot.loader.systemd-boot.memtest86.enable = true;
 
@@ -269,6 +295,9 @@
     usbutils
     fio
     cups-brother-mfcl2800dw
+    nfs-utils
+    mesa
+    libdrm
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
@@ -282,6 +311,30 @@
   };
 
   home-manager.backupFileExtension = "backup";
+
+  boot.supportedFilesystems = [ "nfs" ];
+  services.rpcbind.enable = true; # needed for NFS
+
+  systemd.mounts = [
+    {
+      type = "nfs";
+      mountConfig = {
+        Options = "noatime";
+      };
+      what = "nas.cbannister.casa:/mnt/bighorse/arr";
+      where = "/mnt/bighorse/arr";
+    }
+  ];
+
+  systemd.automounts = [
+    {
+      wantedBy = [ "multi-user.target" ];
+      automountConfig = {
+        TimeoutIdleSec = "600";
+      };
+      where = "/mnt/bighorse/arr";
+    }
+  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
