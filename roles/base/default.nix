@@ -107,7 +107,6 @@
   # Services
   services.openssh.enable = true;
   services.prometheus.exporters.node.enable = true;
-  services.resolved.enable = true;
 
   # State version
   system.stateVersion = lib.mkDefault "25.05";
