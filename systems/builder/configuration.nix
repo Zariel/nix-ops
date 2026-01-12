@@ -126,6 +126,7 @@
   };
 
   systemd.timers.cache-warmer = {
+    enable = false;
     description = "Timer for periodic cache warming builds";
     wantedBy = [ "timers.target" ];
     timerConfig = {
