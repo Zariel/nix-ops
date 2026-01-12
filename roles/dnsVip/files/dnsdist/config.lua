@@ -169,8 +169,6 @@ local blockySubnets = {
     "192.168.2.0/24",          -- guest vlan
     "10.1.2.0/24",             -- trusted
     "fd74:f571:d3bd:20::/64",  -- trusted v6
-    "10.1.3.0/24",             -- iot
-    "fd74:f571:d3bd:40::/64",  -- iot v6
     "10.0.11.0/24"             -- wireguard
 }
 
@@ -185,8 +183,13 @@ addAction(
     PoolAction("cloudflare")
 )
 
+-- iot
+addAction({
+    "10.1.3.0/24",
+    "fd74:f571:d3bd:40::/64",
+}, PoolAction("cloudflare"))
+
 addAction("10.1.0.0/24", PoolAction("cloudflare")) -- lan
-addAction("10.1.8.0/24", PoolAction("cloudflare"))
 addAction({"10.1.1.0/24", "10.254.1.0/24"},  PoolAction("cloudflare"))     -- servers
 addAction({'10.42.0.0/16', '172.20.0.0/16'}, PoolAction('cloudflare'))
 
