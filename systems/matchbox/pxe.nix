@@ -24,7 +24,13 @@ in
 
   environment.etc."tftpboot/ipxe.efi".source = "${myIpxe}/ipxe.efi";
 
-  users.groups.matchbox = { };
+  users.groups.matchbox = {
+    members = [
+      "matchbox"
+      "chris"
+    ];
+  };
+
   users.users.matchbox = {
     isSystemUser = true;
     group = "matchbox";
@@ -47,8 +53,8 @@ in
     };
   };
   systemd.tmpfiles.rules = [
-    "d /var/lib/matchbox/groups   0755 matchbox matchbox -"
-    "d /var/lib/matchbox/profiles 0755 matchbox matchbox -"
-    "d /var/lib/matchbox/assets   0755 matchbox matchbox -"
+    "d /var/lib/matchbox/groups   2755 matchbox matchbox -"
+    "d /var/lib/matchbox/profiles 2755 matchbox matchbox -"
+    "d /var/lib/matchbox/assets   2755 matchbox matchbox -"
   ];
 }
