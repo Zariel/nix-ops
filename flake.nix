@@ -26,6 +26,11 @@
       ...
     }@inputs:
     let
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
+
       mkSystem =
         {
           name,
@@ -92,6 +97,18 @@
         };
     in
     {
+      devShells = forAllSystems (system: {
+        default =
+          let
+            pkgs = import nixpkgs { inherit system; };
+          in
+          pkgs.mkShell {
+            packages = [
+              deploy-rs.packages.${system}.deploy-rs
+            ];
+          };
+      });
+
       nixosConfigurations = {
         dns1 = mkSystem {
           name = "dns1";
