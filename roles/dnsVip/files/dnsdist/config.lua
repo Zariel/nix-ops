@@ -148,12 +148,6 @@ addAction(QNameSuffixRule('mask-h2.icloud.com'), ERCodeAction(DNSRCode.NXDOMAIN)
 
 -- send anything from k8s to cloudflare
 
-addAction('plex.cbannister.xyz', SpoofAction('10.45.0.20'))
-
--- this will send this domain to the bind server
-addAction('unifi', PoolAction('bind'))
-addAction('cbannister.xyz', PoolAction('k8s'))
-addAction('cbannister.casa', PoolAction('bind'))
 
 -- Reverse DNS zones to bind
 addAction({
@@ -165,13 +159,21 @@ addAction({
     '2.168.192.in-addr.arpa'  -- GUEST reverse
 }, PoolAction('bind'))
 
+-- guest and iot straight to cloudflare
+addAction({"192.168.2.0/24", "10.1.3.0/24"}, PoolAction("cloudflare"))
+
+addAction('plex.cbannister.xyz', SpoofAction('10.45.0.20'))
+
+-- this will send this domain to the bind server
+addAction('unifi', PoolAction('bind'))
+addAction('cbannister.xyz', PoolAction('k8s'))
+addAction('cbannister.casa', PoolAction('bind'))
+
 local blockySubnets = {
-    "192.168.2.0/24",          -- guest vlan
     "10.1.2.0/24",             -- trusted
     "fd74:f571:d3bd:20::/64",  -- trusted v6
     "10.0.11.0/24"             -- wireguard
 }
-
 local blockyClientRule = NetmaskGroupRule(blockySubnets)
 
 addAction(
