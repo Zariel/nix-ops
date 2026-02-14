@@ -8,7 +8,7 @@
     defaultEditor = true;
 
     settings = {
-      theme = "penumbra+";
+      theme = "catppuccin_mocha";
 
       editor = {
         end-of-line-diagnostics = "hint";
