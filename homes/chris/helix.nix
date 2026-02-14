@@ -96,6 +96,6 @@
     pyright
 
     # Formatters
-    nixfmt-rfc-style
+    nixfmt
   ];
 }

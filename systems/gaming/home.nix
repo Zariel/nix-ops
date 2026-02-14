@@ -7,7 +7,7 @@
 {
 
   home.packages = with pkgs; [
-    wineWowPackages.full
+    wineWow64Packages.full
     winetricks
     vulkan-tools
     p7zip
@@ -24,6 +24,7 @@
     # protonup-qt
     umu-launcher
     heroic
+    bottles
 
     # Performance monitoring
     nvtopPackages.amd # GPU monitoring (htop-style for AMD)
@@ -31,17 +32,21 @@
 
     deploy-rs
     obsidian
-    vlc
+    # vlc
+    mpv
 
     makemkv
     dovi-tool
     mediainfo
     ffmpeg
     mkvtoolnix-cli
+    rustup
+    kubectl
+    mkbrr
   ];
 
   programs.anomalyMods = {
-    enable = true;
+    enable = false;
     baseDir = "${config.home.homeDirectory}/games/anomaly";
     versions."v1.5.3" = [
       { name = "gamma"; }
@@ -52,7 +57,7 @@
     enable = true;
     steamPackage = osConfig.programs.steam.package;
     winePackages = with pkgs; [
-      wineWowPackages.full
+      wineWow64Packages.full
     ];
     protonPackages = with pkgs; [
       proton-ge-bin
@@ -67,6 +72,10 @@
     ];
   };
 
+  home.shellAliases = {
+    k = "kubectl";
+  };
+
   programs.mangohud = {
     enable = true;
     enableSessionWide = true;
@@ -74,6 +83,7 @@
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
 
     matchBlocks."*" = {
       identityAgent = "~/.1password/agent.sock";
@@ -82,6 +92,11 @@
 
   programs.ghostty = {
     enable = true;
+    settings = {
+      shell-integration-features = [
+        "ssh-env"
+      ];
+    };
   };
 
   programs.nh.osFlake = "/home/chris/nix-ops#nixosConfigurations.gaming";

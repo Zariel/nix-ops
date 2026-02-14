@@ -34,6 +34,9 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/9240c0a4-0281-44ae-98a0-ab520f1b5892";
     fsType = "ext4";
+    options = [
+      "noatime"
+    ];
   };
 
   fileSystems."/boot" = {
@@ -55,5 +58,6 @@
   # networking.interfaces.enp6s0.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.enableAllFirmware = true;
+  hardware.cpu.intel.updateMicrocode = true;
 }

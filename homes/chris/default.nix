@@ -18,6 +18,9 @@
         tmux set-environment -g SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock >/dev/null 2>&1 || true
       fi
     '';
+    ".config/MangoHud/MangoHud.conf".text = ''
+      blacklist=mpv
+    '';
   };
 
   # Basic home configuration
@@ -53,15 +56,17 @@
     doggo
     gnugrep
     gnused
-    curl
+    curlFull
     shellcheck
   ];
 
   # User-specific git configuration
   programs.git = {
     enable = true;
-    userName = "Chris Bannister";
-    userEmail = "c.bannister@gmail.com";
+    settings.user = {
+      name = "Chris Bannister";
+      email = "c.bannister@gmail.com";
+    };
   };
 
   services.ssh-agent.enable = true;

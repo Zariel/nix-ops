@@ -41,7 +41,7 @@
       "processor.max_cstate=1"
       "split_lock_detect=off"
       # "amdgpu.freesync_video=1" # Enable FreeSync for video playback
-      "amdgpu.dc=1" # Explicitly enable Display Core (required for DSC)
+      # "amdgpu.dc=1" # Explicitly enable Display Core (required for DSC)
       # "amdgpu.dc_log=1"  # Uncomment to enable verbose DC debug logging
 
       "quiet"
@@ -49,7 +49,10 @@
       "boot.shell_on_fail"
       "udev.log_priority=3"
       "rd.systemd.show_status=auto"
-      "amdgpu.seamless=1"
+      # "amdgpu.seamless=1"
+
+      # disable NVME power saving
+      # "nvme_core.default_ps_max_latency_us=0"
     ];
 
     kernel.sysctl = {
@@ -151,6 +154,8 @@
     '';
   };
 
+  services.fstrim.enable = true;
+
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm = {
     enable = true;
@@ -208,6 +213,7 @@
     shell = pkgs.fish;
     packages = with pkgs; [
       kdePackages.kate
+      kdePackages.kalk
       #  thunderbird
     ];
   };
@@ -298,6 +304,9 @@
     nfs-utils
     mesa
     libdrm
+    nvme-cli
+    smartmontools
+    config.boot.kernelPackages.turbostat
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
