@@ -12,8 +12,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    beads = {
+      url = "github:steveyegge/beads";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -168,14 +180,14 @@
           name = "dns3";
           addr = "10.254.53.4";
         };
-        dev = mkDeploy {
-          name = "dev";
-          addr = "10.1.2.15";
-        };
-        matchbox = mkDeploy {
-          name = "matchbox";
-          addr = "10.1.1.20";
-        };
+        # dev = mkDeploy {
+        #   name = "dev";
+        #   addr = "10.1.2.15";
+        # };
+        # matchbox = mkDeploy {
+        #   name = "matchbox";
+        #   addr = "10.1.1.20";
+        # };
       };
 
       checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;

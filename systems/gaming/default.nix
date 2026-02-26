@@ -202,6 +202,10 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.groups = {
+    apps.gid = 568;
+    shared.gid = 3005;
+  };
   users.users.chris = {
     isNormalUser = true;
     description = "chris";
@@ -209,6 +213,8 @@
       "networkmanager"
       "wheel"
       "gamemode"
+      "shared"
+      "apps"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
@@ -307,6 +313,7 @@
     nvme-cli
     smartmontools
     config.boot.kernelPackages.turbostat
+    caligula
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget

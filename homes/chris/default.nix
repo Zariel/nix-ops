@@ -48,10 +48,6 @@
     enable = true;
   };
 
-  programs.codex = {
-    enable = true;
-  };
-
   home.packages = with pkgs; [
     doggo
     gnugrep

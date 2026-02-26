@@ -2,8 +2,39 @@
   config,
   pkgs,
   osConfig,
+  inputs,
   ...
 }:
+let
+  go_1_25_6 = pkgs.go_1_25.overrideAttrs (old: rec {
+    version = "1.25.6";
+    src = pkgs.fetchurl {
+      url = "https://go.dev/dl/go${version}.src.tar.gz";
+      hash = "sha256-WMv3ceRNdt5vVtGeM7d9dFoeSJNAkih15GWFuXXCsFk=";
+    };
+  });
+
+  beads = (pkgs.buildGoModule.override { go = go_1_25_6; }) {
+    pname = "beads";
+    version = "0.52.0";
+    src = inputs.beads.outPath;
+    subPackages = [ "cmd/bd" ];
+    doCheck = false;
+    vendorHash = "sha256-M+JCxrKgUxCczYzMc2czLZ/JhdVulo7dH2YLTPrJVSc=";
+
+    postPatch = ''
+      goVer="$(go env GOVERSION | sed 's/^go//')"
+      sed -i "s/^go .*/go $goVer/" go.mod
+    '';
+
+    env.GOTOOLCHAIN = "auto";
+    nativeBuildInputs = [
+      pkgs.git
+      pkgs.pkg-config
+    ];
+    buildInputs = [ pkgs.icu ];
+  };
+in
 {
 
   home.packages = with pkgs; [
@@ -35,7 +66,7 @@
     # vlc
     mpv
 
-    makemkv
+    # makemkv
     dovi-tool
     mediainfo
     ffmpeg
@@ -43,6 +74,7 @@
     rustup
     kubectl
     mkbrr
+    # beads
   ];
 
   programs.anomalyMods = {
@@ -93,9 +125,21 @@
   programs.ghostty = {
     enable = true;
     settings = {
+      theme = "Catppuccin Mocha";
       shell-integration-features = [
         "ssh-env"
       ];
+    };
+  };
+
+  programs.codex = {
+    enable = true;
+    package = inputs.codex-cli-nix.packages.${pkgs.system}.default;
+    settings = {
+      sandbox_mode = "workspace-write";
+      sandbox_workspace_write = {
+        network_access = true;
+      };
     };
   };
 
