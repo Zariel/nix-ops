@@ -51,6 +51,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 10;
 
+  boot.kernel.sysctl."net.core.default_qdisc" = lib.mkDefault "fq";
+  boot.kernel.sysctl."net.ipv4.tcp_congestion_control" = lib.mkDefault "bbr";
+
   # Locale and timezone
   time.timeZone = "Europe/London";
 
@@ -103,6 +106,7 @@
     btop
     git
     smartmontools
+    ethtool
   ];
 
   programs.direnv.enable = true;
