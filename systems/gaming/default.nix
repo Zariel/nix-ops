@@ -317,6 +317,16 @@
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
+    via
+    vial
+    qmk
+    qmk-udev-rules
+  ];
+
+  services.udev.packages = with pkgs; [
+    via
+    vial
+    qmk-udev-rules
   ];
 
   # AMD GPU optimizations and gaming environment
