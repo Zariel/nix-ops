@@ -120,9 +120,50 @@
   networking.hostName = "gaming"; # Define your hostname.
 
   networking.firewall.enable = false;
+  networking.nameservers = [ "172.53.53.53" ];
+  networking.search = [ "cbannister.casa" ];
 
   # Enable networking
-  networking.networkmanager.enable = true;
+  networking.networkmanager.enable = false;
+  networking.useDHCP = false;
+  services.resolved.enable = true;
+  systemd.network = {
+    enable = true;
+    netdevs."10-bond0" = {
+      netdevConfig = {
+        Name = "bond0";
+        Kind = "bond";
+      };
+      bondConfig = {
+        Mode = "active-backup";
+        PrimaryReselectPolicy = "always";
+        MIIMonitorSec = "1s";
+      };
+    };
+    networks."10-bond0" = {
+      matchConfig.Name = "bond0";
+      networkConfig.DHCP = "no";
+      address = [ "10.1.2.16/24" ];
+      gateway = [ "10.1.2.1" ];
+      dns = [ "172.53.53.53" ];
+      domains = [ "cbannister.casa" ];
+    };
+    networks."10-enp7s0f0np0" = {
+      matchConfig.Name = "enp7s0f0np0";
+      networkConfig = {
+        Bond = "bond0";
+        DHCP = "no";
+        PrimarySlave = true;
+      };
+    };
+    networks."10-enp6s0" = {
+      matchConfig.Name = "enp6s0";
+      networkConfig = {
+        Bond = "bond0";
+        DHCP = "no";
+      };
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/London";
@@ -314,6 +355,7 @@
     smartmontools
     config.boot.kernelPackages.turbostat
     caligula
+    mstflint
     # inputs.nixpkgs-gamma.legacyPackages.${pkgs.system}.gamma-launcher
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget

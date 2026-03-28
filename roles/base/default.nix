@@ -107,6 +107,7 @@
     git
     smartmontools
     ethtool
+    traceroute
   ];
 
   programs.direnv.enable = true;
