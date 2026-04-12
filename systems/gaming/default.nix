@@ -84,7 +84,7 @@
 
     settings = {
       # Local build parallelism - with 20 cores, run multiple builds locally too
-      max-jobs = 8; # Run up to 8 builds in parallel (local + remote combined)
+      max-jobs = 20; # Run up to 8 builds in parallel (local + remote combined)
       cores = 0; # Let each build use all available cores (auto-detected)
       auto-optimise-store = true;
       trusted-users = [
@@ -376,6 +376,9 @@
     RADV_PERFTEST = "gpl,nggc"; # Enable GPL shader compilation and NGG culling
     AMD_VULKAN_ICD = "RADV"; # Use RADV driver
     MANGOHUD = "1"; # Enable MangoHud for all games by default
+    PROTON_ENABLE_WAYLAN = "1";
+    PROTON_FSR4_UPGRADE = "1";
+    PROTON_USE_NTSYNC = "1";
   };
 
   home-manager.backupFileExtension = "backup";

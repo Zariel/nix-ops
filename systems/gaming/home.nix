@@ -5,36 +5,6 @@
   inputs,
   ...
 }:
-let
-  go_1_25_6 = pkgs.go_1_25.overrideAttrs (old: rec {
-    version = "1.25.6";
-    src = pkgs.fetchurl {
-      url = "https://go.dev/dl/go${version}.src.tar.gz";
-      hash = "sha256-WMv3ceRNdt5vVtGeM7d9dFoeSJNAkih15GWFuXXCsFk=";
-    };
-  });
-
-  beads = (pkgs.buildGoModule.override { go = go_1_25_6; }) {
-    pname = "beads";
-    version = "0.52.0";
-    src = inputs.beads.outPath;
-    subPackages = [ "cmd/bd" ];
-    doCheck = false;
-    vendorHash = "sha256-M+JCxrKgUxCczYzMc2czLZ/JhdVulo7dH2YLTPrJVSc=";
-
-    postPatch = ''
-      goVer="$(go env GOVERSION | sed 's/^go//')"
-      sed -i "s/^go .*/go $goVer/" go.mod
-    '';
-
-    env.GOTOOLCHAIN = "auto";
-    nativeBuildInputs = [
-      pkgs.git
-      pkgs.pkg-config
-    ];
-    buildInputs = [ pkgs.icu ];
-  };
-in
 {
 
   home.packages = with pkgs; [
@@ -74,8 +44,9 @@ in
     rustup
     kubectl
     mkbrr
-    # beads
   ];
+
+  # programs.chromium.enable = true;
 
   programs.anomalyMods = {
     enable = false;
@@ -86,7 +57,7 @@ in
   };
 
   programs.lutris = {
-    enable = true;
+    # enable = true;
     steamPackage = osConfig.programs.steam.package;
     winePackages = with pkgs; [
       wineWow64Packages.full
@@ -134,7 +105,7 @@ in
 
   programs.codex = {
     enable = true;
-    package = inputs.codex-cli-nix.packages.${pkgs.system}.default;
+    package = inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
     settings = {
       sandbox_mode = "workspace-write";
       sandbox_workspace_write = {

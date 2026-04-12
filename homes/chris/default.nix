@@ -46,6 +46,9 @@
 
   programs.nh = {
     enable = true;
+    clean = {
+      enable = true;
+    };
   };
 
   home.packages = with pkgs; [
@@ -59,9 +62,12 @@
   # User-specific git configuration
   programs.git = {
     enable = true;
-    settings.user = {
-      name = "Chris Bannister";
-      email = "c.bannister@gmail.com";
+    settings = {
+      user = {
+        name = "Chris Bannister";
+        email = "c.bannister@gmail.com";
+      };
+      push.autoSetupRemote = true;
     };
   };
 

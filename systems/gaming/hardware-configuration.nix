@@ -28,6 +28,7 @@
   boot.kernelModules = [
     "kvm-intel"
     "sg"
+    "ntsync"
   ];
   boot.extraModulePackages = [ ];
 
