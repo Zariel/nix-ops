@@ -145,6 +145,13 @@
             disko.nixosModules.disko
           ];
         };
+        nostromo = mkSystem {
+          name = "nostromo";
+          extraModules = [
+            ./roles/server
+            disko.nixosModules.disko
+          ];
+        };
         gaming = mkSystem {
           name = "gaming";
           extraModules = [
