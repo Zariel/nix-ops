@@ -17,15 +17,25 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    codex-cli-nix = {
-      url = "github:sadjow/codex-cli-nix";
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    beads = {
-      url = "github:steveyegge/beads";
+    catppuccin = {
+      url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # codex-cli-nix = {
+    #   url = "github:sadjow/codex-cli-nix";
+    #   # inputs.nixpkgs.follows = "nixpkgs";
+    # };
+
+    # beads = {
+    #   url = "github:steveyegge/beads";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
   };
 
   outputs =
@@ -35,6 +45,7 @@
       home-manager,
       deploy-rs,
       disko,
+      catppuccin,
       ...
     }@inputs:
     let
@@ -97,6 +108,7 @@
               imports = [
                 ./homes/chris
                 hostHome
+                catppuccin.homeModules.catppuccin
               ];
             };
             extraSpecialArgs = {
@@ -148,6 +160,7 @@
         gaming = mkSystem {
           name = "gaming";
           extraModules = [
+            catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
             mkHome
           ];

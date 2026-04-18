@@ -35,6 +35,7 @@
     obsidian
     # vlc
     mpv
+    bubblewrap
 
     # makemkv
     dovi-tool
@@ -45,6 +46,27 @@
     kubectl
     mkbrr
   ];
+
+  catppuccin = {
+    enable = true;
+    flavor = "mocha";
+
+    mangohud.enable = false;
+  };
+
+  programs.alacritty = {
+    enable = true;
+    theme = "catppuccin_mocha";
+  };
+  programs.fuzzel = {
+    enable = true;
+  };
+  programs.waybar = {
+    enable = true;
+  };
+  services.mako = {
+    enable = true;
+  };
 
   # programs.chromium.enable = true;
 
@@ -105,7 +127,7 @@
 
   programs.codex = {
     enable = true;
-    package = inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
     settings = {
       sandbox_mode = "workspace-write";
       sandbox_workspace_write = {

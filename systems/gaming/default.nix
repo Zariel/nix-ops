@@ -203,6 +203,8 @@
     wayland.enable = true; # Enable Wayland for better VRR support
   };
   services.desktopManager.plasma6.enable = true;
+  programs.niri.enable = true;
+  programs.xwayland.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -259,8 +261,8 @@
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
-      kdePackages.kate
-      kdePackages.kalk
+      # kdePackages.kate
+      # kdePackages.kalk
       #  thunderbird
     ];
   };
@@ -363,6 +365,7 @@
     vial
     qmk
     qmk-udev-rules
+    xwayland-satellite
   ];
 
   services.udev.packages = with pkgs; [

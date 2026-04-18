@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   ...
 }:
 {
@@ -8,7 +9,7 @@
     defaultEditor = true;
 
     settings = {
-      theme = "catppuccin_mocha";
+      theme = lib.mkDefault "catppuccin_mocha";
 
       editor = {
         end-of-line-diagnostics = "hint";
