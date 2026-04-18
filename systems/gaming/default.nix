@@ -366,6 +366,7 @@
     qmk
     qmk-udev-rules
     xwayland-satellite
+    wlogout
   ];
 
   services.udev.packages = with pkgs; [
@@ -408,6 +409,10 @@
       };
       where = "/mnt/bighorse/arr";
     }
+  ];
+
+  fonts.packages = with pkgs; [
+    font-awesome
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
