@@ -168,6 +168,7 @@
         thinliz = mkSystem {
           name = "thinliz";
           extraModules = [
+            disko.nixosModules.disko
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
             mkHome
@@ -192,14 +193,10 @@
           name = "dns3";
           addr = "10.254.53.4";
         };
-        # dev = mkDeploy {
-        #   name = "dev";
-        #   addr = "10.1.2.15";
-        # };
-        # matchbox = mkDeploy {
-        #   name = "matchbox";
-        #   addr = "10.1.1.20";
-        # };
+        thinliz = mkDeploy {
+          name = "thinliz";
+          addr = "10.1.2.102";
+        };
       };
 
       checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;

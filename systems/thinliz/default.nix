@@ -3,12 +3,53 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 
+let
+  moonlightLauncher = pkgs.writeShellScript "moonlight-launcher" ''
+    export NIXOS_OZONE_WL=1
+    export SDL_VIDEODRIVER=wayland
+
+    while true; do
+      ${pkgs.moonlight-qt}/bin/moonlight
+      sleep 2
+    done
+  '';
+
+  swayConfig = pkgs.writeText "sway-moonlight.conf" ''
+    output * bg #000000 solid_color
+
+    default_border pixel 0
+    default_floating_border pixel 0
+    focus_follows_mouse no
+
+    input type:keyboard {
+      xkb_layout gb
+    }
+
+    bindsym XF86PowerOff exec ${pkgs.systemd}/bin/systemctl suspend
+    bindsym Ctrl+Alt+BackSpace exec ${pkgs.systemd}/bin/loginctl terminate-user gaming
+
+    for_window [app_id="moonlight"] fullscreen enable
+    for_window [class="moonlight"] fullscreen enable
+
+    exec ${moonlightLauncher}
+  '';
+
+  gamingSession = pkgs.writeShellScript "gaming-session" ''
+    export XDG_SESSION_TYPE=wayland
+    export XDG_CURRENT_DESKTOP=sway
+    export XDG_SESSION_DESKTOP=sway
+    export SDL_VIDEODRIVER=wayland
+    export NIXOS_OZONE_WL=1
+
+    exec ${pkgs.dbus}/bin/dbus-run-session \
+      ${pkgs.sway}/bin/sway --config ${swayConfig}
+  '';
+in
 {
   imports = [
     # Include the results of the hardware scan.
@@ -16,19 +57,37 @@
     ./disk-config.nix
   ];
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+      timeout = 0;
+    };
 
-  boot.kernelParams = [
-  ];
-
-  boot.kernel.sysctl = {
-    "vm.max_map_count" = 2147483642; # Required for many modern games
-    "fs.file-max" = 524288; # Increase file descriptor limit
+    consoleLogLevel = 3;
+    initrd.verbose = false;
+    kernelPackages = pkgs.linuxPackages_latest;
+    kernelParams = [
+      "quiet"
+      "splash"
+      "udev.log_priority=3"
+      "rd.systemd.show_status=auto"
+    ];
+    plymouth = {
+      enable = true;
+      theme = "rings";
+      themePackages = with pkgs; [
+        (adi1090x-plymouth-themes.override {
+          selected_themes = [ "rings" ];
+        })
+      ];
+    };
   };
 
-  hardware.cpu.intel.updateMicrocode = true;
+  boot.kernel.sysctl = {
+    "fs.file-max" = 524288;
+    "vm.max_map_count" = 2147483642;
+  };
 
   nix = {
     distributedBuilds = true;
@@ -81,12 +140,20 @@
   };
 
   # Use latest kernel.
-  networking.hostName = "thinliz"; # Define your hostname.
-
-  networking.firewall.enable = false;
-
-  # Enable networking
-  # networking.networkmanager.enable = true;
+  networking.hostName = "thinliz";
+  networking.useDHCP = false;
+  services.resolved.enable = true;
+  systemd.network = {
+    enable = true;
+    networks."10-wired" = {
+      matchConfig.Driver = "igc";
+      networkConfig.DHCP = "no";
+      address = [ "10.1.2.102/24" ];
+      gateway = [ "10.1.2.1" ];
+      dns = [ "172.53.53.53" ];
+      domains = [ "cbannister.casa" ];
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/London";
@@ -106,8 +173,48 @@
     LC_TIME = "en_GB.UTF-8";
   };
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+  programs.xwayland.enable = true;
+
+  services.greetd = {
+    enable = true;
+    settings = {
+      initial_session = {
+        command = gamingSession;
+        user = "gaming";
+      };
+      default_session = {
+        command = "${pkgs.greetd}/bin/agreety --cmd /run/current-system/sw/bin/login";
+        user = "greeter";
+      };
+    };
+  };
+
+  hardware = {
+    enableAllFirmware = true;
+    cpu.intel.updateMicrocode = true;
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+      extraPackages = with pkgs; [
+        intel-compute-runtime
+        intel-media-driver
+      ];
+    };
+    xone.enable = true;
+  };
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
+  services.fstrim.enable = true;
+  services.fwupd.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.chris = {
@@ -121,8 +228,23 @@
     packages = with pkgs; [
     ];
   };
+  users.users.gaming = {
+    isNormalUser = true;
+    description = "gaming";
+    extraGroups = [ "video" ];
+    shell = pkgs.bashInteractive;
+  };
 
   programs.fish.enable = true;
+
+  security.rtkit.enable = true;
+  services.pulseaudio.enable = false;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -131,9 +253,14 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     linux-firmware
+    moonlight-qt
+    vulkan-tools
+    pciutils
+    usbutils
   ];
 
   environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
   };
 
   home-manager.backupFileExtension = "backup";
@@ -148,20 +275,5 @@
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.11"; # Did you read the comment?
 }
