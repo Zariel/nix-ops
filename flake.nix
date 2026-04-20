@@ -165,15 +165,6 @@
             mkHome
           ];
         };
-        dev = mkSystem {
-          name = "dev";
-          extraModules = [
-            disko.nixosModules.disko
-            ./roles/server
-            home-manager.nixosModules.home-manager
-            mkHome
-          ];
-        };
       };
 
       deploy.nodes = {
