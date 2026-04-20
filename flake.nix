@@ -165,6 +165,14 @@
             mkHome
           ];
         };
+        thinliz = mkSystem {
+          name = "thinliz";
+          extraModules = [
+            catppuccin.nixosModules.catppuccin
+            home-manager.nixosModules.home-manager
+            mkHome
+          ];
+        };
       };
 
       deploy.nodes = {
