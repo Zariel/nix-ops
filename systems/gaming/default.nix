@@ -312,9 +312,46 @@
     polkitPolicyOwners = [ "chris" ];
   };
 
+  services.sunshine = {
+    enable = true;
+    capSysAdmin = true;
+    openFirewall = true;
+    settings = {
+      av1_mode = 1;
+      capture = "kms";
+      hevc_mode = 1;
+    };
+    applications = {
+      apps = [
+        {
+          name = "Desktop";
+          "image-path" = "desktop.png";
+        }
+        {
+          name = "Steam Big Picture";
+          "image-path" = "steam.png";
+          detached = [
+            "${pkgs.util-linux}/bin/setsid ${config.programs.steam.package}/bin/steam steam://open/bigpicture"
+          ];
+          "prep-cmd" = [
+            {
+              do = "";
+              undo = "${pkgs.util-linux}/bin/setsid ${config.programs.steam.package}/bin/steam steam://close/bigpicture";
+            }
+          ];
+        }
+      ];
+    };
+  };
+
   hardware.graphics = {
     enable = lib.mkDefault true;
     enable32Bit = lib.mkDefault true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-compute-runtime
+      vpl-gpu-rt
+    ];
   };
 
   hardware.amdgpu.initrd.enable = lib.mkDefault true;
@@ -353,6 +390,7 @@
     nfs-utils
     mesa
     libdrm
+    libva-utils
     nvme-cli
     smartmontools
     config.boot.kernelPackages.turbostat
