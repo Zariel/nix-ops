@@ -258,6 +258,8 @@
       "gamemode"
       "shared"
       "apps"
+      "video"
+      "render"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
