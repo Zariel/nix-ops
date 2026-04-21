@@ -9,14 +9,10 @@
 }:
 
 let
-  moonlightLauncher = pkgs.writeShellScript "moonlight-launcher" ''
+  moonlightCommand = pkgs.writeShellScript "moonlight" ''
     export NIXOS_OZONE_WL=1
     export SDL_VIDEODRIVER=wayland
-
-    while true; do
-      ${pkgs.moonlight-qt}/bin/moonlight
-      sleep 2
-    done
+    exec ${pkgs.moonlight-qt}/bin/moonlight
   '';
 
   swayConfig = pkgs.writeText "sway-moonlight.conf" ''
@@ -33,21 +29,11 @@ let
     bindsym XF86PowerOff exec ${pkgs.systemd}/bin/systemctl suspend
     bindsym Ctrl+Alt+BackSpace exec ${pkgs.systemd}/bin/loginctl terminate-user gaming
 
+    # Let UWSM mark the graphical session ready and export SWAYSOCK/WAYLAND_DISPLAY.
+    exec ${pkgs.uwsm}/bin/uwsm finalize SWAYSOCK
+
     for_window [app_id="moonlight"] fullscreen enable
     for_window [class="moonlight"] fullscreen enable
-
-    exec ${moonlightLauncher}
-  '';
-
-  gamingSession = pkgs.writeShellScript "gaming-session" ''
-    export XDG_SESSION_TYPE=wayland
-    export XDG_CURRENT_DESKTOP=sway
-    export XDG_SESSION_DESKTOP=sway
-    export SDL_VIDEODRIVER=wayland
-    export NIXOS_OZONE_WL=1
-
-    exec ${pkgs.dbus}/bin/dbus-run-session \
-      ${pkgs.sway}/bin/sway --config ${swayConfig}
   '';
 in
 {
@@ -173,9 +159,25 @@ in
     LC_TIME = "en_GB.UTF-8";
   };
 
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors.sway = {
+      prettyName = "Sway";
+      comment = "Sway compositor managed by UWSM";
+      binPath = "/run/current-system/sw/bin/sway";
+      extraArgs = [
+        "--config"
+        "${swayConfig}"
+      ];
+    };
+  };
+
   programs.sway = {
     enable = true;
-    wrapperFeatures.gtk = true;
+    wrapperFeatures = {
+      base = false;
+      gtk = true;
+    };
   };
   programs.xwayland.enable = true;
 
@@ -183,7 +185,7 @@ in
     enable = true;
     settings = {
       initial_session = {
-        command = gamingSession;
+        command = "${pkgs.uwsm}/bin/uwsm start -eD sway -N Sway -C 'Sway compositor managed by UWSM' -F -- /run/current-system/sw/bin/sway --config ${swayConfig}";
         user = "gaming";
       };
       default_session = {
@@ -192,6 +194,8 @@ in
       };
     };
   };
+
+  services.dbus.implementation = lib.mkForce "dbus";
 
   hardware = {
     enableAllFirmware = true;
@@ -211,6 +215,21 @@ in
     enable = true;
     nssmdns4 = true;
     openFirewall = true;
+  };
+
+  systemd.user.services.moonlight = {
+    description = "Moonlight streaming client";
+    partOf = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    startLimitIntervalSec = 30;
+    startLimitBurst = 20;
+    serviceConfig = {
+      ExecStart = "${moonlightCommand}";
+      Restart = "always";
+      RestartSec = 2;
+      Slice = "app-graphical.slice";
+    };
   };
 
   services.fstrim.enable = true;
