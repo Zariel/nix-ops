@@ -79,7 +79,7 @@
   };
 
   programs.lutris = {
-    # enable = true;
+    enable = true;
     steamPackage = osConfig.programs.steam.package;
     winePackages = with pkgs; [
       wineWow64Packages.full

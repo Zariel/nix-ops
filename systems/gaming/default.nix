@@ -367,6 +367,7 @@
     qmk-udev-rules
     xwayland-satellite
     wlogout
+    # flint
   ];
 
   services.udev.packages = with pkgs; [
@@ -380,7 +381,7 @@
     RADV_PERFTEST = "gpl,nggc"; # Enable GPL shader compilation and NGG culling
     AMD_VULKAN_ICD = "RADV"; # Use RADV driver
     MANGOHUD = "1"; # Enable MangoHud for all games by default
-    PROTON_ENABLE_WAYLAN = "1";
+    PROTON_ENABLE_WAYLAND = "1";
     PROTON_FSR4_UPGRADE = "1";
     PROTON_USE_NTSYNC = "1";
   };
