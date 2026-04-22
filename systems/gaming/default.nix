@@ -321,7 +321,7 @@
   };
 
   services.sunshine = {
-    enable = true;
+    enable = false;
     capSysAdmin = true;
     openFirewall = true;
     settings = {
