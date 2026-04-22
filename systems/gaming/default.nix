@@ -284,6 +284,12 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     gamescopeSession.enable = true;
+    package = pkgs.steam.override {
+      extraEnv = {
+        LIBVA_DRIVER_NAME = "radeonsi";
+        LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
+      };
+    };
     protontricks.enable = true;
     extraPackages = with pkgs; [
       gamemode
