@@ -56,6 +56,7 @@ in
     kernelParams = [
       "quiet"
       "splash"
+      "usbcore.autosuspend=-1"
       "udev.log_priority=3"
       "rd.systemd.show_status=auto"
     ];
