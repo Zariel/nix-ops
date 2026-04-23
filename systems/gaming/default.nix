@@ -286,6 +286,8 @@
     gamescopeSession.enable = true;
     package = pkgs.steam.override {
       extraEnv = {
+        DRI_PRIME = "pci-0000_03_00_0!";
+        MESA_VK_DEVICE_SELECT = "1002:7550!";
         LIBVA_DRIVER_NAME = "radeonsi";
         LIBVA_DRIVERS_PATH = "/run/opengl-driver-32/lib/dri:/run/opengl-driver/lib/dri";
       };
