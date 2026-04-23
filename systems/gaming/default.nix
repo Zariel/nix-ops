@@ -323,8 +323,9 @@
   };
 
   services.sunshine = {
-    enable = false;
+    autoStart = true;
     capSysAdmin = true;
+    enable = true;
     openFirewall = true;
     settings = {
       av1_mode = 1;
@@ -356,7 +357,17 @@
 
   xdg.portal = {
     enable = true;
-    wlr.enable = true;
+    config = {
+      kde.default = [
+        "kde"
+        "gtk"
+      ];
+      plasma.default = [
+        "kde"
+        "gtk"
+      ];
+    };
+    wlr.enable = false;
   };
 
   hardware.graphics = {
