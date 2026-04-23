@@ -287,7 +287,7 @@
     package = pkgs.steam.override {
       extraEnv = {
         LIBVA_DRIVER_NAME = "radeonsi";
-        LIBVA_DRIVERS_PATH = "/run/opengl-driver/lib/dri";
+        LIBVA_DRIVERS_PATH = "/run/opengl-driver-32/lib/dri:/run/opengl-driver/lib/dri";
       };
     };
     protontricks.enable = true;
