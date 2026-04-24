@@ -13,6 +13,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ./streaming.nix
   ];
 
   # Bootloader.
@@ -198,6 +199,9 @@
   services.fstrim.enable = true;
 
   # Enable the KDE Plasma Desktop Environment.
+  # Default SDDM to Plasma X11 so the lounge streaming user exercises the
+  # simple X11/Sunshine path; chris can still select Plasma Wayland or niri.
+  services.displayManager.defaultSession = "plasmax11";
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true; # Enable Wayland for better VRR support
@@ -268,6 +272,17 @@
       #  thunderbird
     ];
   };
+  users.users.gaming = {
+    isNormalUser = true;
+    description = "gaming";
+    extraGroups = [
+      "gamemode"
+      "input"
+      "render"
+      "video"
+    ];
+    shell = pkgs.bashInteractive;
+  };
 
   programs.fish.enable = true;
 
@@ -323,13 +338,13 @@
   };
 
   services.sunshine = {
-    autoStart = true;
+    autoStart = false;
     capSysAdmin = true;
     enable = true;
     openFirewall = true;
     settings = {
       av1_mode = 1;
-      capture = "kms";
+      capture = "x11";
       hevc_mode = 1;
     };
     applications = {
