@@ -252,6 +252,7 @@
   users.groups = {
     apps.gid = 568;
     shared.gid = 3005;
+    steam = { };
   };
   users.users.chris = {
     isNormalUser = true;
@@ -262,6 +263,7 @@
       "gamemode"
       "shared"
       "apps"
+      "steam"
       "video"
       "render"
     ];
@@ -279,10 +281,17 @@
       "gamemode"
       "input"
       "render"
+      "steam"
       "video"
     ];
     shell = pkgs.bashInteractive;
   };
+
+  systemd.tmpfiles.rules = [
+    "d /srv/steam-library 2775 root steam -"
+    "d /srv/steam-library/steamapps 2775 root steam -"
+    "A+ /srv/steam-library - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"
+  ];
 
   programs.fish.enable = true;
 
