@@ -60,6 +60,9 @@
       "vm.max_map_count" = 2147483642; # Required for many modern games
       "fs.file-max" = 524288; # Increase file descriptor limit
     };
+    kernel.syfs = {
+      devices.system.cpu.intel_pstate.hwp_dynamic_boost = 1;
+    };
   };
 
   hardware.cpu.intel.updateMicrocode = true;
