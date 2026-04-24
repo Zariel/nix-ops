@@ -9,46 +9,140 @@
 }:
 
 let
-  moonlightApp = "Steam Big Picture";
-  moonlightHost = "10.1.2.16";
+  moonlightOutputHeight = "2160";
+  moonlightOutputMode = "${moonlightOutputWidth}x${moonlightOutputHeight}@${moonlightOutputRefresh}Hz";
+  moonlightOutputName = "HDMI-A-1";
+  moonlightOutputRefresh = "60";
+  moonlightOutputWidth = "3840";
 
-  moonlightLauncher = pkgs.writeShellScript "moonlight-launcher" ''
-    set -eu
+  moonlightDiagnostics = pkgs.writeShellScriptBin "lounge-moonlight-diagnostics" ''
+    set +e
 
-    moonlight='${pkgs.moonlight-qt}/bin/moonlight'
-    host='${moonlightHost}'
-    app='${moonlightApp}'
-    autostream_state="$XDG_RUNTIME_DIR/moonlight-autostreamed"
+    log_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/moonlight"
+    mkdir -p "$log_dir"
+    stamp="''${XDG_RUNTIME_DIR:-/tmp}/lounge-moonlight-diagnostics-last-run"
+    now="$(${pkgs.coreutils}/bin/date +%s)"
 
-    if [ ! -e "$autostream_state" ] && "$moonlight" list "$host" >/dev/null 2>&1; then
-      touch "$autostream_state"
-
-      "$moonlight" stream "$host" "$app" \
-        --1080 \
-        --fps 60 \
-        --display-mode fullscreen \
-        --audio-config 5.1-surround \
-        --video-codec auto \
-        --video-decoder hardware \
-        --quit-after \
-        --game-optimization \
-        --frame-pacing \
-        --keep-awake \
-        --capture-system-keys fullscreen || true
+    if [ "''${1:-}" != "--force" ]; then
+      last="$(${pkgs.coreutils}/bin/cat "$stamp" 2>/dev/null || echo 0)"
+      if [ "$((now - last))" -lt 300 ]; then
+        exit 0
+      fi
     fi
 
-    exec "$moonlight"
+    printf '%s\n' "$now" >"$stamp"
+    log="$log_dir/diagnostics-$(${pkgs.coreutils}/bin/date +%Y%m%d-%H%M%S).log"
+
+    {
+      echo "== session =="
+      ${pkgs.coreutils}/bin/date --iso-8601=seconds
+      id
+      echo "XDG_SESSION_ID=''${XDG_SESSION_ID:-}"
+      echo "XDG_SESSION_TYPE=''${XDG_SESSION_TYPE:-}"
+      echo "XDG_RUNTIME_DIR=''${XDG_RUNTIME_DIR:-}"
+      echo "WAYLAND_DISPLAY=''${WAYLAND_DISPLAY:-}"
+      echo "QT_QPA_PLATFORM=''${QT_QPA_PLATFORM:-}"
+      echo "LIBVA_DRIVER_NAME=''${LIBVA_DRIVER_NAME:-}"
+      echo "PREFER_VULKAN=''${PREFER_VULKAN:-}"
+      echo
+
+      echo "== loginctl session =="
+      if [ -n "''${XDG_SESSION_ID:-}" ]; then
+        ${pkgs.systemd}/bin/loginctl show-session "$XDG_SESSION_ID" \
+          -p Type -p Class -p Active -p State -p Remote -p Seat
+      fi
+      echo
+
+      echo "== drm devices =="
+      ${pkgs.coreutils}/bin/ls -l /dev/dri || true
+      ${pkgs.drm_info}/bin/drm_info || true
+      echo
+
+      echo "== wayland outputs =="
+      ${pkgs.wlr-randr}/bin/wlr-randr || true
+      ${pkgs.wayland-utils}/bin/wayland-info || true
+      echo
+
+      echo "== vaapi drm =="
+      ${pkgs.libva-utils}/bin/vainfo --display drm --device /dev/dri/renderD128 || true
+      echo
+
+      echo "== vaapi wayland =="
+      ${pkgs.libva-utils}/bin/vainfo --display wayland || true
+      echo
+
+      echo "== vulkan =="
+      ${pkgs.vulkan-tools}/bin/vulkaninfo --summary || true
+      echo
+
+      echo "== audio =="
+      ${pkgs.pulseaudio}/bin/pactl info || true
+      ${pkgs.pulseaudio}/bin/pactl list short sinks || true
+      echo
+
+      echo "== input =="
+      ${pkgs.coreutils}/bin/ls -l /dev/input/by-id /dev/input/by-path || true
+    } >"$log" 2>&1
+
+    ${pkgs.coreutils}/bin/ln -sfn "$log" "$log_dir/diagnostics-latest.log"
+  '';
+
+  moonlightWaylandApp = pkgs.writeShellScript "moonlight-wayland-app" ''
+    set -eu
+
+    log_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/moonlight"
+    mkdir -p "$log_dir"
+
+    export LIBVA_DRIVER_NAME=iHD
+    export PREFER_VULKAN=1
+    export QT_QPA_PLATFORM=wayland
+    export SDL_VIDEODRIVER=wayland
+    export XDG_CURRENT_DESKTOP=sway
+    export XDG_SESSION_TYPE=wayland
+
+    ${moonlightDiagnostics}/bin/lounge-moonlight-diagnostics || true
+
+    exec ${pkgs.moonlight-qt}/bin/moonlight >>"$log_dir/session.log" 2>&1
+  '';
+
+  moonlightAppLoop = pkgs.writeShellScript "moonlight-app-loop" ''
+    set -eu
+
+    while true; do
+      ${moonlightWaylandApp} || true
+      sleep 2
+    done
+  '';
+
+  moonlightSwayConfig = pkgs.writeText "moonlight-sway.conf" ''
+    set $mod Mod4
+
+    output ${moonlightOutputName} mode ${moonlightOutputMode} pos 0 0 scale 1
+
+    default_border none
+    default_floating_border none
+    hide_edge_borders smart
+    gaps inner 0
+    seat * hide_cursor 3000
+
+    bindsym $mod+Shift+e exec ${pkgs.sway}/bin/swaymsg exit
+
+    for_window [app_id="moonlight"] fullscreen enable
+    for_window [app_id="Moonlight"] fullscreen enable
+    for_window [title="Moonlight"] fullscreen enable
+
+    exec ${moonlightAppLoop}
   '';
 
   moonlightSessionCommand = pkgs.writeShellScript "moonlight-session" ''
     set -eu
 
-    export NIXOS_OZONE_WL=1
-    export QT_QPA_PLATFORM=wayland
-    export SDL_VIDEODRIVER=wayland
+    log_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/moonlight"
+    mkdir -p "$log_dir"
 
     while true; do
-      ${pkgs.dbus}/bin/dbus-run-session ${pkgs.cage}/bin/cage -- ${moonlightLauncher}
+      ${pkgs.dbus}/bin/dbus-run-session \
+        ${pkgs.sway}/bin/sway -d -c ${moonlightSwayConfig} >>"$log_dir/sway.log" 2>&1 || true
       sleep 2
     done
   '';
@@ -66,16 +160,17 @@ in
       efi.canTouchEfiVariables = true;
       timeout = 0;
     };
-
     consoleLogLevel = 3;
     initrd.verbose = false;
     kernelPackages = pkgs.linuxPackages_latest;
     kernelParams = [
       "quiet"
       "splash"
+      "i915.force_probe=!a7a0"
       "usbcore.autosuspend=-1"
       "udev.log_priority=3"
       "rd.systemd.show_status=auto"
+      "xe.force_probe=a7a0"
     ];
     plymouth = {
       enable = true;
@@ -145,6 +240,7 @@ in
 
   # Use latest kernel.
   networking.hostName = "thinliz";
+  networking.firewall.enable = false;
   networking.useDHCP = false;
   services.resolved.enable = true;
   systemd.network = {
@@ -199,10 +295,10 @@ in
     graphics = {
       enable = true;
       enable32Bit = true;
-      extraPackages = with pkgs; [
-        intel-compute-runtime
-        intel-media-driver
-      ];
+    };
+    intelgpu = {
+      driver = "xe";
+      vaapiDriver = "intel-media-driver";
     };
     xone.enable = true;
   };
@@ -299,17 +395,20 @@ in
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    cage
+    drm_info
+    libva-utils
     linux-firmware
+    mesa-demos
     moonlight-qt
-    vulkan-tools
+    moonlightDiagnostics
     pciutils
+    sway
+    tcpdump
     usbutils
+    vulkan-tools
+    wayland-utils
+    wlr-randr
   ];
-
-  environment.sessionVariables = {
-    NIXOS_OZONE_WL = "1";
-  };
 
   home-manager.backupFileExtension = "backup";
 
