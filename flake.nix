@@ -27,6 +27,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
     # codex-cli-nix = {
     #   url = "github:sadjow/codex-cli-nix";
     #   # inputs.nixpkgs.follows = "nixpkgs";
@@ -46,6 +48,7 @@
       deploy-rs,
       disko,
       catppuccin,
+      nixos-hardware,
       ...
     }@inputs:
     let
@@ -171,6 +174,8 @@
             disko.nixosModules.disko
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
+            nixos-hardware.nixosModules.common-cpu-intel
+            nixos-hardware.nixosModules.common-gpu-intel
             mkHome
           ];
         };

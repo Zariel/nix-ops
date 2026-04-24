@@ -39,6 +39,7 @@ let
       id
       echo "XDG_SESSION_ID=''${XDG_SESSION_ID:-}"
       echo "XDG_SESSION_TYPE=''${XDG_SESSION_TYPE:-}"
+      echo "XDG_CONFIG_DIRS=''${XDG_CONFIG_DIRS:-}"
       echo "XDG_RUNTIME_DIR=''${XDG_RUNTIME_DIR:-}"
       echo "WAYLAND_DISPLAY=''${WAYLAND_DISPLAY:-}"
       echo "QT_QPA_PLATFORM=''${QT_QPA_PLATFORM:-}"
@@ -97,6 +98,7 @@ let
     export PREFER_VULKAN=1
     export QT_QPA_PLATFORM=wayland
     export SDL_VIDEODRIVER=wayland
+    export XDG_CONFIG_DIRS="/etc/xdg''${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}"
     export XDG_CURRENT_DESKTOP=sway
     export XDG_SESSION_TYPE=wayland
 
@@ -394,6 +396,11 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  environment.etc."xdg/Moonlight Game Streaming Project/Moonlight.conf".text = ''
+    [General]
+    videodec=2
+  '';
+
   environment.systemPackages = with pkgs; [
     drm_info
     libva-utils
