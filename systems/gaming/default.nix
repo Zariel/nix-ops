@@ -9,6 +9,14 @@
   ...
 }:
 
+let
+  gamingAccountsServiceUser = pkgs.writeText "accountsservice-gaming-user" ''
+    [User]
+    Session=plasmax11
+    SessionType=x11
+    XSession=plasmax11
+  '';
+in
 {
   imports = [
     # Include the results of the hardware scan.
@@ -60,7 +68,7 @@
       "vm.max_map_count" = 2147483642; # Required for many modern games
       "fs.file-max" = 524288; # Increase file descriptor limit
     };
-    kernel.syfs = {
+    kernel.sysfs = {
       devices.system.cpu.intel_pstate.hwp_dynamic_boost = 1;
     };
   };
@@ -204,6 +212,7 @@
   # Enable the KDE Plasma Desktop Environment.
   # Default SDDM to Plasma X11 so the lounge streaming user exercises the
   # simple X11/Sunshine path; chris can still select Plasma Wayland or niri.
+  services.accounts-daemon.enable = true;
   services.displayManager.defaultSession = "plasmax11";
   services.displayManager.sddm = {
     enable = true;
@@ -291,6 +300,7 @@
   };
 
   systemd.tmpfiles.rules = [
+    "C+ /var/lib/AccountsService/users/gaming 0600 root root - ${gamingAccountsServiceUser}"
     "d /srv/steam-library 2775 root steam -"
     "d /srv/steam-library/steamapps 2775 root steam -"
     "A+ /srv/steam-library - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"
