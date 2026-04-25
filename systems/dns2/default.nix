@@ -11,5 +11,8 @@
     nodeIp = "10.254.53.2";
   };
 
-  programs.nh.clean.enable = true;
+  programs.nh = {
+    enable = true;
+    clean.enable = true;
+  };
 }
