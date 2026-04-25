@@ -39,12 +39,12 @@ in
         "bind.service"
         "blocky.service"
       ];
+      startLimitIntervalSec = mkForce 60;
+      startLimitBurst = mkForce 5;
       serviceConfig = {
         ExecStartPre = dnsdistConfigCheck;
         Restart = "on-failure";
         RestartSec = "5s";
-        StartLimitIntervalSec = 60;
-        StartLimitBurst = 5;
         TimeoutStartSec = "30s";
       };
     };

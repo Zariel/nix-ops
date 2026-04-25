@@ -85,6 +85,22 @@ in
     services.blocky.enable = true;
     services.bird.enable = true;
 
+    systemd.slices."dns-critical" = {
+      description = "Critical DNS serving path";
+      sliceConfig = {
+        CPUWeight = 200;
+        IOWeight = 200;
+      };
+    };
+
+    systemd.services = {
+      bind.serviceConfig.Slice = "dns-critical.slice";
+      bird.serviceConfig.Slice = "dns-critical.slice";
+      blocky.serviceConfig.Slice = "dns-critical.slice";
+      dns-healthcheck.serviceConfig.Slice = "dns-critical.slice";
+      dnsdist.serviceConfig.Slice = "dns-critical.slice";
+    };
+
     # Pass nodeIp to health check service
     services.dnsHealthcheck = {
       enable = true;

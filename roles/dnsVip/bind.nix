@@ -97,12 +97,12 @@ in
     systemd.services.bind = {
       after = [ "sys-subsystem-net-devices-bind.device" ];
       bindsTo = [ "sys-subsystem-net-devices-bind.device" ];
+      startLimitIntervalSec = mkForce 60;
+      startLimitBurst = mkForce 5;
       serviceConfig = {
         ExecStartPre = bindPreflight;
         Restart = "on-failure";
         RestartSec = "5s";
-        StartLimitIntervalSec = 60;
-        StartLimitBurst = 5;
         TimeoutStartSec = "30s";
       };
     };

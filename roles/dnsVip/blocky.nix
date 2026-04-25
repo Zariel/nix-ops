@@ -87,11 +87,11 @@ in
     systemd.services.blocky = {
       after = [ "sys-subsystem-net-devices-blocky.device" ];
       bindsTo = [ "sys-subsystem-net-devices-blocky.device" ];
+      startLimitIntervalSec = mkForce 60;
+      startLimitBurst = mkForce 5;
       serviceConfig = {
         Restart = "on-failure";
         RestartSec = "5s";
-        StartLimitIntervalSec = 60;
-        StartLimitBurst = 5;
         TimeoutStartSec = "30s";
         ExecStartPre = pkgs.writeShellScript "blocky-preflight" ''
           set -euo pipefail
