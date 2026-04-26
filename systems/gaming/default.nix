@@ -201,10 +201,6 @@
 
   services.fstrim.enable = true;
 
-  # Enable the KDE Plasma Desktop Environment.
-  # Default SDDM to Plasma X11 so the lounge streaming user exercises the
-  # simple X11/Sunshine path; chris can still select Plasma Wayland or niri.
-  services.displayManager.defaultSession = "plasmax11";
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true; # Enable Wayland for better VRR support
@@ -387,14 +383,11 @@
     config = {
       kde.default = [
         "kde"
-        "gtk"
       ];
       plasma.default = [
         "kde"
-        "gtk"
       ];
     };
-    wlr.enable = false;
   };
 
   hardware.graphics = {
