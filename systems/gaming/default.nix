@@ -201,6 +201,9 @@
 
   services.fstrim.enable = true;
 
+  # Enable the KDE Plasma Desktop Environment.
+  # Default normal interactive logins to niri.
+  services.displayManager.defaultSession = "niri";
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true; # Enable Wayland for better VRR support
@@ -272,18 +275,6 @@
       # kdePackages.kalk
       #  thunderbird
     ];
-  };
-  users.users.gaming = {
-    isNormalUser = true;
-    description = "gaming";
-    extraGroups = [
-      "gamemode"
-      "input"
-      "render"
-      "steam"
-      "video"
-    ];
-    shell = pkgs.bashInteractive;
   };
 
   systemd.tmpfiles.rules = [
