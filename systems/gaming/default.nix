@@ -57,6 +57,7 @@
 
     kernel.sysctl = {
       "vm.max_map_count" = 2147483642; # Required for many modern games
+      "vm.swappiness" = 20; # Prefer RAM/file cache for gaming; still use zram under pressure
       "fs.file-max" = 524288; # Increase file descriptor limit
     };
     kernel.sysfs = {
@@ -200,6 +201,23 @@
 
   services.fstrim.enable = true;
 
+  # Hibernate needs persistent swap; zram is useful for runtime pressure but
+  # cannot store a suspend-to-disk image after power-off.
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 64 * 1024;
+      priority = 10;
+      discardPolicy = "both";
+    }
+  ];
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 60;
+    priority = 100;
+  };
+
   # Enable the KDE Plasma Desktop Environment.
   # Default normal interactive logins to niri.
   services.displayManager.defaultSession = "niri";
@@ -279,7 +297,8 @@
   systemd.tmpfiles.rules = [
     "d /srv/steam-library 2775 root steam -"
     "d /srv/steam-library/steamapps 2775 root steam -"
-    "A+ /srv/steam-library - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"
+    "a+ /srv/steam-library - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"
+    "a+ /srv/steam-library/steamapps - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"
   ];
 
   programs.fish.enable = true;

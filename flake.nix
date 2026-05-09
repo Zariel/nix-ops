@@ -22,6 +22,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     catppuccin = {
       url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -47,6 +52,7 @@
       home-manager,
       deploy-rs,
       disko,
+      treefmt-nix,
       catppuccin,
       nixos-hardware,
       ...
@@ -56,6 +62,14 @@
         "x86_64-linux"
         "aarch64-darwin"
       ];
+
+      treefmtEval = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        treefmt-nix.lib.evalModule pkgs ./treefmt.nix
+      );
 
       mkSystem =
         {
@@ -124,6 +138,8 @@
         };
     in
     {
+      formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
+
       devShells = forAllSystems (system: {
         default =
           let
@@ -204,6 +220,13 @@
         };
       };
 
-      checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+      checks =
+        nixpkgs.lib.recursiveUpdate
+          (builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib)
+          (
+            forAllSystems (system: {
+              formatting = treefmtEval.${system}.config.build.check self;
+            })
+          );
     };
 }

@@ -83,6 +83,7 @@
         "https://nixpkgs-unfree.cachix.org"
         "https://cachix.cachix.org"
         "https://cache.garnix.io"
+        "https://cache.numtide.com"
       ];
 
       trusted-public-keys = lib.mkAfter [
@@ -91,6 +92,7 @@
         "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
         "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
         "cache-name:nKgRvz/pXDZWsXAuzXcoRyyW2Ryut5EpoeLEeiyqgnA="
+        "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       ];
     };
   };
