@@ -133,6 +133,20 @@
   services.resolved.enable = true;
   systemd.network = {
     enable = true;
+    links = {
+      "10-enp6s0" = {
+        matchConfig.OriginalName = "enp6s0";
+        linkConfig.WakeOnLan = "off";
+      };
+      "10-enp7s0f0np0" = {
+        matchConfig.OriginalName = "enp7s0f0np0";
+        linkConfig.WakeOnLan = "off";
+      };
+      "10-enp7s0f1np1" = {
+        matchConfig.OriginalName = "enp7s0f1np1";
+        linkConfig.WakeOnLan = "off";
+      };
+    };
     netdevs."10-bond0" = {
       netdevConfig = {
         Name = "bond0";
@@ -354,39 +368,6 @@
     polkitPolicyOwners = [ "chris" ];
   };
 
-  services.sunshine = {
-    autoStart = false;
-    capSysAdmin = true;
-    enable = true;
-    openFirewall = true;
-    settings = {
-      av1_mode = 1;
-      capture = "x11";
-      hevc_mode = 1;
-    };
-    applications = {
-      apps = [
-        {
-          name = "Desktop";
-          "image-path" = "desktop.png";
-        }
-        {
-          name = "Steam Big Picture";
-          "image-path" = "steam.png";
-          detached = [
-            "${pkgs.util-linux}/bin/setsid ${config.programs.steam.package}/bin/steam steam://open/bigpicture"
-          ];
-          "prep-cmd" = [
-            {
-              do = "";
-              undo = "${pkgs.util-linux}/bin/setsid ${config.programs.steam.package}/bin/steam steam://close/bigpicture";
-            }
-          ];
-        }
-      ];
-    };
-  };
-
   xdg.portal = {
     enable = true;
     config = {
@@ -461,6 +442,7 @@
     xwayland-satellite
     wlogout
     # flint
+    bluez
   ];
 
   services.udev.packages = with pkgs; [
@@ -468,6 +450,19 @@
     vial
     qmk-udev-rules
   ];
+  services.udev.extraRules = ''
+    # Keep the power button as the primary wake source. The current logs show
+    # S3/S4 wakes with broad PCIe/USB/RTC wake sources enabled.
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:01.0", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:01:00.0", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:14.0", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:1a.0", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:1c.0", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:1c.2", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:1c.4", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="platform", KERNEL=="rtc_cmos", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="platform", KERNEL=="ACPI000E:00", ATTR{power/wakeup}="disabled"
+  '';
 
   # AMD GPU optimizations and gaming environment
   environment.sessionVariables = {

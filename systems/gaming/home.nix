@@ -20,7 +20,7 @@
     # Gaming tools
     gamescope # Valve's gaming compositor for FSR upscaling and frame limiting
     goverlay # GUI for MangoHud configuration
-    protontricks # Manage Proton prefixes like winetricks
+    # protontricks # Manage Proton prefixes like winetricks
     # protonup-ng
     # protonup-qt
     umu-launcher
@@ -288,6 +288,11 @@
   #         XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
   #     }
   #   '';
+
+  xdg = {
+    enable = true;
+    mimeApps.enable = true;
+  };
   xdg.configFile."powerdevilrc".text = ''
     [AC][Display]
     DimDisplayIdleTimeoutSec=-1

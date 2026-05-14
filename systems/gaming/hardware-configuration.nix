@@ -65,4 +65,5 @@
     enable = true;
     keychronSupport = true;
   };
+  hardware.bluetooth.enable = true;
 }
