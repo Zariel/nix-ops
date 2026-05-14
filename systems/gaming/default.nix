@@ -25,13 +25,6 @@
 
     plymouth = {
       enable = true;
-      theme = "rings";
-      themePackages = with pkgs; [
-        # By default we would install all themes
-        (adi1090x-plymouth-themes.override {
-          selected_themes = [ "rings" ];
-        })
-      ];
     };
 
     consoleLogLevel = 3;
@@ -233,14 +226,32 @@
   };
 
   # Enable the KDE Plasma Desktop Environment.
-  # Default normal interactive logins to niri.
-  services.displayManager.defaultSession = "niri";
+  # Default normal interactive logins to Niri managed by UWSM.
+  services.displayManager.defaultSession = "niri-uwsm";
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true; # Enable Wayland for better VRR support
   };
   services.desktopManager.plasma6.enable = true;
+  catppuccin = {
+    flavor = "mocha";
+    accent = "mauve";
+    plymouth.enable = true;
+    sddm = {
+      enable = true;
+      font = "JetBrainsMono Nerd Font";
+    };
+    tty.enable = true;
+  };
   programs.niri.enable = true;
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors.niri = {
+      prettyName = "Niri";
+      comment = "Niri compositor managed by UWSM";
+      binPath = "/run/current-system/sw/bin/niri-session";
+    };
+  };
   programs.xwayland.enable = true;
 
   # Configure keymap in X11
@@ -259,6 +270,7 @@
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  security.pam.services.hyprlock = { };
   security.pam.yubico = {
     enable = true;
     id = "18293395";
@@ -441,6 +453,11 @@
     qmk-udev-rules
     xwayland-satellite
     wlogout
+    (catppuccin-kde.override {
+      flavour = [ "mocha" ];
+      accents = [ "mauve" ];
+      winDecStyles = [ "modern" ];
+    })
     # flint
     bluez
   ];
@@ -502,6 +519,7 @@
 
   fonts.packages = with pkgs; [
     font-awesome
+    nerd-fonts.jetbrains-mono
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
