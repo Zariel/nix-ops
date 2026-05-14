@@ -135,6 +135,12 @@
       sandbox_workspace_write = {
         network_access = true;
       };
+      model_reasoning_effort = "high";
+      plan_mode_reasoning_effort = "xhigh";
+      model_reasoning_summary = "detailed";
+      personality = "pragmatic";
+
+      features.multi_agent = true;
     };
   };
 
