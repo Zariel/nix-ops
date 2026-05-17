@@ -84,34 +84,10 @@
     ];
 
     settings = {
-      # Local build parallelism - with 20 cores, run multiple builds locally too
-      max-jobs = 20; # Run up to 8 builds in parallel (local + remote combined)
-      cores = 0; # Let each build use all available cores (auto-detected)
-      auto-optimise-store = true;
-      trusted-users = [
-        "root"
-        "chris"
-      ];
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      # Binary cache settings
-      substituters = lib.mkAfter [
-        "http://10.1.1.155:5000"
-        "https://nix-community.cachix.org"
-        "https://nixpkgs-unfree.cachix.org"
-        "https://cachix.cachix.org"
-        "https://cache.garnix.io"
-      ];
-
-      trusted-public-keys = lib.mkAfter [
-        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
-        "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
-        "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-        "cache-name:nKgRvz/pXDZWsXAuzXcoRyyW2Ryut5EpoeLEeiyqgnA="
-      ];
+      # Local build parallelism for a 20-thread / 32 GiB gaming desktop.
+      max-jobs = 8;
+      cores = 4;
+      builders-use-substitutes = true;
     };
   };
 
@@ -509,7 +485,6 @@
   environment.sessionVariables = {
     RADV_PERFTEST = "gpl,nggc"; # Enable GPL shader compilation and NGG culling
     AMD_VULKAN_ICD = "RADV"; # Use RADV driver
-    MANGOHUD = "1"; # Enable MangoHud for all games by default
     PROTON_ENABLE_WAYLAND = "1";
     PROTON_FSR4_UPGRADE = "1";
     PROTON_USE_NTSYNC = "1";

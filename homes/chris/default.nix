@@ -18,9 +18,6 @@
         tmux set-environment -g SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock >/dev/null 2>&1 || true
       fi
     '';
-    ".config/MangoHud/MangoHud.conf".text = ''
-      blacklist=mpv
-    '';
   };
 
   # Basic home configuration

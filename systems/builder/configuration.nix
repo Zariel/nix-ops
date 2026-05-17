@@ -23,14 +23,16 @@
 
   # Builder-specific nix settings
   nix.settings = {
-    # Build parallelism - 8 cores, 32GB RAM
-    max-jobs = 8; # Run up to 8 builds in parallel
-    cores = 4; # Each build can use 4 cores (8 * 4 = 32 max, but typically less)
+    # Build parallelism - 8 CPUs, 16GB RAM
+    max-jobs = 4;
+    cores = 2;
 
     # Garbage collection thresholds
     min-free = lib.mkDefault (2 * 1024 * 1024 * 1024); # 2GB
     max-free = lib.mkDefault (20 * 1024 * 1024 * 1024); # 20GB
   };
+
+  zramSwap.enable = true;
 
   # Number of build users for parallel builds
   nix.nrBuildUsers = 32;

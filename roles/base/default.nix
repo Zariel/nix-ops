@@ -8,10 +8,7 @@
   # Nix settings
   nix.settings = {
     auto-optimise-store = true;
-    trusted-users = [
-      "root"
-      "chris"
-    ];
+    trusted-users = [ "chris" ];
     experimental-features = [
       "nix-command"
       "flakes"
