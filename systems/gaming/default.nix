@@ -66,7 +66,9 @@
       {
         hostName = "builder.cbannister.casa";
         system = "x86_64-linux";
-        sshUser = "chris";
+        sshUser = "nix-remote-builder";
+        sshKey = "/var/lib/nix-remote-builder/id_ed25519";
+        publicHostKey = "AAAAC3NzaC1lZDI1NTE5AAAAIGHcCpiRC/tkGOIxAM4bSjiasAIFzxTj9iDxhsxo/kNK";
         protocol = "ssh";
         maxJobs = 4; # Limit remote jobs to match builder capacity
         speedFactor = 2; # Prefer remote builder (higher = more preferred)
@@ -321,6 +323,7 @@
   };
 
   systemd.tmpfiles.rules = [
+    "d /var/lib/nix-remote-builder 0700 root root -"
     "d /srv/steam-library 2775 root steam -"
     "d /srv/steam-library/steamapps 2775 root steam -"
     "a+ /srv/steam-library - - - - group:steam:rwx,default:group:steam:rwx,mask::rwx,default:mask::rwx"

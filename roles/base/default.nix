@@ -46,6 +46,9 @@
     ];
   };
 
+  # sops-nix decrypts host-specific secrets using the machine's SSH host key.
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

@@ -196,7 +196,9 @@ in
       {
         hostName = "builder.cbannister.casa";
         system = "x86_64-linux";
-        sshUser = "chris";
+        sshUser = "nix-remote-builder";
+        sshKey = "/var/lib/nix-remote-builder/id_ed25519";
+        publicHostKey = "AAAAC3NzaC1lZDI1NTE5AAAAIGHcCpiRC/tkGOIxAM4bSjiasAIFzxTj9iDxhsxo/kNK";
         protocol = "ssh";
         maxJobs = 4; # Limit remote jobs to match builder capacity
         speedFactor = 2; # Prefer remote builder (higher = more preferred)
@@ -241,6 +243,10 @@ in
   };
 
   # Use latest kernel.
+  systemd.tmpfiles.rules = [
+    "d /var/lib/nix-remote-builder 0700 root root -"
+  ];
+
   networking.hostName = "thinliz";
   networking.firewall.enable = false;
   networking.useDHCP = false;

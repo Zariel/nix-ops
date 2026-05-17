@@ -35,6 +35,10 @@
   # Number of build users for parallel builds
   nix.nrBuildUsers = 32;
 
+  nix.settings.trusted-users = lib.mkAfter [
+    "nix-remote-builder"
+  ];
+
   # Automatic garbage collection
   nix.gc = {
     automatic = true;
@@ -47,6 +51,18 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM+Nua2Ygsk93Z3aybi+cxuqGjkK6tbP+3rVj6k39RpQ nix-daemon@macbook"
   ];
 
+  users.groups.nix-remote-builder = { };
+  users.users.nix-remote-builder = {
+    isSystemUser = true;
+    group = "nix-remote-builder";
+    home = "/var/lib/nix-remote-builder";
+    createHome = true;
+    shell = pkgs.bashInteractive;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILhYchTL2BZZhaN33jlVRjoLnbWMh1O3DXCspoLrlfC7 nix-remote-builder@cbannister.casa"
+    ];
+  };
+
   # Builder-specific packages
   environment.systemPackages = with pkgs; [
     neovim
@@ -55,7 +71,7 @@
   services.qemuGuest.enable = true;
 
   # Binary cache service
-  services.harmonia = {
+  services.harmonia.cache = {
     enable = true;
     signKeyPaths = [ "/var/lib/secrets/harmonia-key" ];
     settings = {

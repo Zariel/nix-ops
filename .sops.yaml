@@ -1,0 +1,8 @@
+keys:
+  - &gaming age1z9g7kdjfxx7z7qnun0qu00xzycv9958w3aarj7d82emcg6mvtfyquspvnp
+
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *gaming

@@ -34,6 +34,11 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # codex-cli-nix = {
     #   url = "github:sadjow/codex-cli-nix";
     #   # inputs.nixpkgs.follows = "nixpkgs";
@@ -55,6 +60,7 @@
       treefmt-nix,
       catppuccin,
       nixos-hardware,
+      sops-nix,
       ...
     }@inputs:
     let
@@ -83,6 +89,7 @@
           };
           modules = [
             ./roles/base
+            sops-nix.nixosModules.sops
             ./systems/${name}
           ]
           ++ extraModules;
