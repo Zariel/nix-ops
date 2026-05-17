@@ -10,6 +10,7 @@
     historyLimit = 10000;
     mouse = true;
     keyMode = "vi";
+    clock24 = false;
     secureSocket = false;
     newSession = true;
 

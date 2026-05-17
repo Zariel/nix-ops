@@ -42,7 +42,9 @@
       "boot.shell_on_fail"
       "udev.log_priority=3"
       "rd.systemd.show_status=auto"
-      # "amdgpu.seamless=1"
+      # Keep the firmware/Plymouth framebuffer alive through the handoff to the
+      # display manager where the AMD driver supports it.
+      "amdgpu.seamless=1"
 
       # disable NVME power saving
       # "nvme_core.default_ps_max_latency_us=0"
@@ -115,6 +117,25 @@
 
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # TP-Link UB600 / Realtek 8761BUV advertises as 37ad:0600, but kernels before
+  # the upstream quirk bind it as generic btusb and skip Realtek firmware setup.
+  # Upstream patch: https://www.spinics.net/lists/linux-bluetooth/msg129364.html
+  boot.kernelPatches = [
+    {
+      name = "tp-link-ub600-realtek-8761buv";
+      patch = ./patches/tp-link-ub600-realtek-8761buv.patch;
+    }
+  ];
+
+  sops.secrets.nix-remote-builder-key = {
+    sopsFile = ../../secrets/nix-remote-builder.yaml;
+    key = "nix_remote_builder_private_key";
+    path = "/var/lib/nix-remote-builder/id_ed25519";
+    owner = "root";
+    group = "root";
+    mode = "0400";
+  };
 
   networking.hostName = "gaming"; # Define your hostname.
 

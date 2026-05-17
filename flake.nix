@@ -120,9 +120,16 @@
           ...
         }:
         let
-          hostHome = builtins.path {
-            path = "${toString ./systems}/${config.networking.hostName}/home.nix";
-          };
+          hostPath = "${toString ./systems}/${config.networking.hostName}";
+          hostHome =
+            if builtins.pathExists "${hostPath}/home/default.nix" then
+              builtins.path {
+                path = "${hostPath}/home";
+              }
+            else
+              builtins.path {
+                path = "${hostPath}/home.nix";
+              };
         in
         {
           home-manager = {
