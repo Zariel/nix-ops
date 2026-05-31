@@ -29,6 +29,7 @@
 
     consoleLogLevel = 3;
     initrd.verbose = false;
+    kernelPackages = pkgs.linuxPackages_latest;
     kernelParams = [
       "intel_idle.max_cstate=1"
       "processor.max_cstate=1"
@@ -72,8 +73,8 @@
         sshKey = "/var/lib/nix-remote-builder/id_ed25519";
         publicHostKey = "AAAAC3NzaC1lZDI1NTE5AAAAIGHcCpiRC/tkGOIxAM4bSjiasAIFzxTj9iDxhsxo/kNK";
         protocol = "ssh";
-        maxJobs = 4; # Limit remote jobs to match builder capacity
-        speedFactor = 2; # Prefer remote builder (higher = more preferred)
+        maxJobs = 8; # EPYC remote builder VM capacity
+        speedFactor = 8; # Strongly prefer remote builder over local builds
         supportedFeatures = [
           "nixos-test"
           "benchmark"
@@ -84,25 +85,33 @@
     ];
 
     settings = {
-      # Local build parallelism for a 20-thread / 32 GiB gaming desktop.
-      max-jobs = 8;
-      cores = 4;
+      # Keep derivation concurrency moderate, but let large local builds such as
+      # the kernel use the CPU instead of compiling with only a few jobs.
+      max-jobs = 4;
+      cores = 0;
       builders-use-substitutes = true;
+      extra-sandbox-paths = [ config.programs.ccache.cacheDir ];
     };
   };
 
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # programs.ccache = {
+  #   enable = true;
+  #   packageNames = [ "linux_latest" ];
+  #   trace = false;
+  # };
+
+  # Use latest kernel via the top-level package so programs.ccache can wrap it.
+  # boot.kernelPackages = pkgs.linuxPackagesFor pkgs.linux_latest;
 
   # TP-Link UB600 / Realtek 8761BUV advertises as 37ad:0600, but kernels before
   # the upstream quirk bind it as generic btusb and skip Realtek firmware setup.
   # Upstream patch: https://www.spinics.net/lists/linux-bluetooth/msg129364.html
-  boot.kernelPatches = [
-    {
-      name = "tp-link-ub600-realtek-8761buv";
-      patch = ./patches/tp-link-ub600-realtek-8761buv.patch;
-    }
-  ];
+  # boot.kernelPatches = [
+  #   {
+  #     name = "tp-link-ub600-realtek-8761buv";
+  #     patch = ./patches/tp-link-ub600-realtek-8761buv.patch;
+  #   }
+  # ];
 
   sops.secrets.nix-remote-builder-key = {
     sopsFile = ../../secrets/nix-remote-builder.yaml;
@@ -453,6 +462,9 @@
     qmk-udev-rules
     xwayland-satellite
     wlogout
+    qemu
+    mkosi
+    libvirt
     (catppuccin-kde.override {
       flavour = [ "mocha" ];
       accents = [ "mauve" ];
