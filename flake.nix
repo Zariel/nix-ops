@@ -166,6 +166,10 @@
           };
       });
 
+      packages = forAllSystems (system: {
+        git-commit-wrapped = nixpkgs.legacyPackages.${system}.callPackage ./packages/git-commit-wrapped { };
+      });
+
       nixosConfigurations = {
         dns1 = mkSystem {
           name = "dns1";
