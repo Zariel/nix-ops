@@ -77,6 +77,10 @@
         treefmt-nix.lib.evalModule pkgs ./treefmt.nix
       );
 
+      localOverlay = final: _prev: {
+        git-commit-wrapped = final.callPackage ./packages/git-commit-wrapped { };
+      };
+
       mkSystem =
         {
           name,
@@ -88,6 +92,9 @@
             inherit inputs;
           };
           modules = [
+            {
+              nixpkgs.overlays = [ localOverlay ];
+            }
             ./roles/base
             sops-nix.nixosModules.sops
             ./systems/${name}
@@ -167,8 +174,17 @@
       });
 
       packages = forAllSystems (system: {
-        git-commit-wrapped = nixpkgs.legacyPackages.${system}.callPackage ./packages/git-commit-wrapped { };
+        git-commit-wrapped =
+          let
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ localOverlay ];
+            };
+          in
+          pkgs.git-commit-wrapped;
       });
+
+      overlays.default = localOverlay;
 
       nixosConfigurations = {
         dns1 = mkSystem {
