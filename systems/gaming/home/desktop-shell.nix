@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 let
   lockCommand = "${pkgs.systemd}/bin/systemctl --user start niri-lock.service";
   keyboardBluetoothNotifications = pkgs.writeShellScript "keyboard-bluetooth-notifications" ''
@@ -551,6 +551,8 @@ in
       ];
     };
   };
+
+  systemd.user.services.waybar.Unit.ConditionEnvironment = lib.mkForce "XDG_CURRENT_DESKTOP=niri";
 
   systemd.user.services.niri-lock = {
     Unit = {

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   catppuccin = {
     enable = true;
@@ -14,6 +14,7 @@
   };
 
   gtk.enable = true;
+  home.file."/home/chris/.gtkrc-2.0".force = lib.mkForce true;
 
   home.pointerCursor = {
     name = "catppuccin-mocha-mauve-cursors";

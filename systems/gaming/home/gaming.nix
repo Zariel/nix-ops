@@ -24,6 +24,10 @@
     mkvtoolnix-cli
 
     zmk-studio
+    beads
+    git-commit-wrapped
+    go
+    gopls
   ];
 
   programs.anomalyMods = {

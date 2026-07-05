@@ -46,6 +46,7 @@
       # Keep the firmware/Plymouth framebuffer alive through the handoff to the
       # display manager where the AMD driver supports it.
       "amdgpu.seamless=1"
+      "intel_iommu=on"
 
       # disable NVME power saving
       # "nvme_core.default_ps_max_latency_us=0"
@@ -242,6 +243,7 @@
   };
   services.desktopManager.plasma6.enable = true;
   catppuccin = {
+    enable = true;
     flavor = "mocha";
     accent = "mauve";
     plymouth.enable = true;
@@ -257,10 +259,13 @@
     waylandCompositors.niri = {
       prettyName = "Niri";
       comment = "Niri compositor managed by UWSM";
-      binPath = "/run/current-system/sw/bin/niri-session";
+      binPath = "${pkgs.niri}/bin/niri-session";
     };
   };
   programs.xwayland.enable = true;
+
+  environment.etc."xdg/menus/niri-session-applications.menu".source =
+    "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -319,11 +324,13 @@
       "steam"
       "video"
       "render"
+      "kvm"
+      "libvirtd"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
-      # kdePackages.kate
-      # kdePackages.kalk
+      kdePackages.kate
+      kdePackages.kalk
       #  thunderbird
     ];
   };
@@ -352,6 +359,8 @@
     dedicatedServer.openFirewall = true;
     gamescopeSession.enable = true;
     package = pkgs.steam.override {
+      # extraArgs = "-silent -pipewire";
+      extraArgs = "-silent";
       extraEnv = {
         DRI_PRIME = "pci-0000_03_00_0!";
         MESA_VK_DEVICE_SELECT = "1002:7550!";
@@ -448,6 +457,9 @@
     mesa
     libdrm
     libva-utils
+    mpv
+    xdg-utils
+    shared-mime-info
     nvme-cli
     smartmontools
     config.boot.kernelPackages.turbostat
@@ -462,9 +474,6 @@
     qmk-udev-rules
     xwayland-satellite
     wlogout
-    qemu
-    mkosi
-    libvirt
     (catppuccin-kde.override {
       flavour = [ "mocha" ];
       accents = [ "mauve" ];
@@ -472,7 +481,28 @@
     })
     # flint
     bluez
+
+    qemu_kvm
+    go
+    libvirt
+    virt-manager
   ];
+
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu = {
+      package = pkgs.qemu_kvm;
+      swtpm.enable = true;
+      runAsRoot = true;
+    };
+  };
+  programs.virt-manager.enable = true;
+
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
 
   services.udev.packages = with pkgs; [
     via

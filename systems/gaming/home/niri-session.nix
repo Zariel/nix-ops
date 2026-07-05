@@ -155,6 +155,12 @@ in
     '';
   };
 
+  programs.tmux.extraConfig = ''
+    # In the local Niri session, copy tmux selections straight to Wayland.
+    bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
+    bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
+  '';
+
   systemd.user.services.onepassword = {
     Unit = {
       Description = "1Password";
@@ -185,16 +191,4 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  systemd.user.services.niri-steam = {
-    Unit = {
-      Description = "Steam autostart for Niri";
-      After = [ "graphical-session.target" ];
-      ConditionEnvironment = "XDG_CURRENT_DESKTOP=niri";
-    };
-    Service = {
-      ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
-      ExecStart = "${osConfig.programs.steam.package}/bin/steam -silent";
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-  };
 }
