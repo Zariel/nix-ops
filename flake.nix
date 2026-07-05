@@ -77,9 +77,12 @@
         treefmt-nix.lib.evalModule pkgs ./treefmt.nix
       );
 
-      localOverlay = final: _prev: {
-        git-commit-wrapped = final.callPackage ./packages/git-commit-wrapped { };
-      };
+      localOverlay = nixpkgs.lib.composeManyExtensions [
+        (import ./overlays/proton-ge-bin-10.nix)
+        (final: _prev: {
+          git-commit-wrapped = final.callPackage ./packages/git-commit-wrapped { };
+        })
+      ];
 
       mkSystem =
         {
@@ -182,6 +185,14 @@
             };
           in
           pkgs.git-commit-wrapped;
+        proton-ge-bin-10 =
+          let
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ localOverlay ];
+            };
+          in
+          pkgs.proton-ge-bin-10;
       });
 
       overlays.default = localOverlay;

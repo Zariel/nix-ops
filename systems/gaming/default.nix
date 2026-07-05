@@ -9,6 +9,9 @@
   ...
 }:
 
+let
+  gamemodeSteamCompat = import ./pkgs/gamemode-steam-compat.nix { inherit pkgs; };
+in
 {
   imports = [
     # Include the results of the hardware scan.
@@ -369,16 +372,16 @@
       };
     };
     protontricks.enable = true;
-    extraPackages = with pkgs; [
-      gamemode
-    ];
+    extraPackages = [ gamemodeSteamCompat ];
     extraCompatPackages = with pkgs; [
       proton-ge-bin
+      proton-ge-bin-10
     ];
   };
 
   programs.gamemode = {
     enable = true;
+    package = gamemodeSteamCompat;
     settings = {
       general = {
         renice = 10;
@@ -523,12 +526,11 @@
     ACTION=="add", SUBSYSTEM=="platform", KERNEL=="ACPI000E:00", ATTR{power/wakeup}="disabled"
   '';
 
-  # AMD GPU optimizations and gaming environment
+  # Keep broadly safe Vulkan defaults global. Proton renderer and upscaler
+  # experiments are safer as per-title Steam launch options.
   environment.sessionVariables = {
     RADV_PERFTEST = "gpl,nggc"; # Enable GPL shader compilation and NGG culling
     AMD_VULKAN_ICD = "RADV"; # Use RADV driver
-    PROTON_ENABLE_WAYLAND = "1";
-    PROTON_FSR4_UPGRADE = "1";
     PROTON_USE_NTSYNC = "1";
   };
 

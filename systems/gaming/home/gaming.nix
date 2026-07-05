@@ -46,12 +46,13 @@
     ];
     protonPackages = with pkgs; [
       proton-ge-bin
+      proton-ge-bin-10
     ];
     extraPackages = with pkgs; [
       mangohud
       winetricks
       gamescope
-      gamemode
+      osConfig.programs.gamemode.package
       umu-launcher
       vulkan-tools
     ];
