@@ -1,12 +1,11 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
-  # Replace these with the actual stable by-id values before running nix-anywhere.
-  rootDiskA = "/dev/disk/by-id/ata-ROOT_SSD_A";
-  rootDiskB = "/dev/disk/by-id/ata-ROOT_SSD_B";
-  fastDiskA = "/dev/disk/by-id/nvme-FAST_NVME_A";
-  fastDiskB = "/dev/disk/by-id/nvme-FAST_NVME_B";
+  rootDiskA = "/dev/disk/by-id/ata-SAMSUNG_MZ7L3480HCHQ-00A07_S664NT0X604542";
+  rootDiskB = "/dev/disk/by-id/ata-SAMSUNG_MZ7L3480HCHQ-00A07_S664NT0X604546";
 in
 {
+  boot.swraid.mdadmConf = "PROGRAM ${pkgs.coreutils}/bin/true";
+
   disko.devices = {
     disk.root-a = {
       device = lib.mkDefault rootDiskA;
@@ -25,12 +24,12 @@ in
               mountOptions = [ "umask=0077" ];
             };
           };
-          zfs = {
-            name = "nostromo-rpool-a";
+          root = {
+            name = "nostromo-root-a";
             size = "100%";
             content = {
-              type = "zfs";
-              pool = "rpool";
+              type = "mdraid";
+              name = "root";
             };
           };
         };
@@ -54,117 +53,29 @@ in
               mountOptions = [ "umask=0077" ];
             };
           };
-          zfs = {
-            name = "nostromo-rpool-b";
+          root = {
+            name = "nostromo-root-b";
             size = "100%";
             content = {
-              type = "zfs";
-              pool = "rpool";
+              type = "mdraid";
+              name = "root";
             };
           };
         };
       };
     };
 
-    disk.fast-a = {
-      device = lib.mkDefault fastDiskA;
-      type = "disk";
+    mdadm.root = {
+      type = "mdadm";
+      level = 1;
       content = {
-        type = "gpt";
-        partitions.zfs = {
-          name = "nostromo-fastpool-a";
-          size = "100%";
-          content = {
-            type = "zfs";
-            pool = "fastpool";
-          };
-        };
-      };
-    };
-
-    disk.fast-b = {
-      device = lib.mkDefault fastDiskB;
-      type = "disk";
-      content = {
-        type = "gpt";
-        partitions.zfs = {
-          name = "nostromo-fastpool-b";
-          size = "100%";
-          content = {
-            type = "zfs";
-            pool = "fastpool";
-          };
-        };
-      };
-    };
-
-    zpool.rpool = {
-      type = "zpool";
-      mode = "mirror";
-      options = {
-        ashift = "12";
-        autotrim = "on";
-      };
-      rootFsOptions = {
-        acltype = "posixacl";
-        atime = "off";
-        compression = "zstd";
-        dnodesize = "auto";
-        mountpoint = "none";
-        normalization = "formD";
-        primarycache = "metadata";
-        xattr = "sa";
-      };
-      datasets = {
-        root = {
-          type = "zfs_fs";
-          options.mountpoint = "none";
-        };
-        "root/nixos" = {
-          type = "zfs_fs";
-          mountpoint = "/";
-          options = {
-            canmount = "noauto";
-            mountpoint = "legacy";
-          };
-        };
-        home = {
-          type = "zfs_fs";
-          mountpoint = "/home";
-          options.mountpoint = "legacy";
-        };
-      };
-    };
-
-    zpool.fastpool = {
-      type = "zpool";
-      mode = "mirror";
-      options = {
-        ashift = "12";
-        autotrim = "on";
-      };
-      rootFsOptions = {
-        acltype = "posixacl";
-        atime = "off";
-        compression = "zstd";
-        mountpoint = "none";
-        primarycache = "metadata";
-        xattr = "sa";
-      };
-      datasets = {
-        nix = {
-          type = "zfs_fs";
-          mountpoint = "/nix";
-          options = {
-            atime = "off";
-            mountpoint = "legacy";
-          };
-        };
-        local-storage = {
-          type = "zfs_fs";
-          mountpoint = "/var/lib/local-storage";
-          options.mountpoint = "legacy";
-        };
+        type = "filesystem";
+        format = "xfs";
+        mountpoint = "/";
+        mountOptions = [
+          "defaults"
+          "noatime"
+        ];
       };
     };
   };
