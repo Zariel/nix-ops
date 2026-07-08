@@ -138,6 +138,10 @@ in
   networking.networkmanager.enable = false;
   networking.useDHCP = false;
   services.resolved.enable = true;
+  services.timesyncd = {
+    enable = true;
+    servers = [ "10.254.254.1" ];
+  };
   systemd.network = {
     enable = true;
     links = {
