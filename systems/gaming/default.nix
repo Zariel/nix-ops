@@ -20,6 +20,8 @@ in
 
   # Bootloader.
   boot = {
+    tmp.cleanOnBoot = true;
+
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -272,13 +274,13 @@ in
 
   # Configure keymap in X11
   services.xserver.xkb = {
-    layout = "gb";
-    variant = "mac";
+    layout = lib.mkForce "us";
+    variant = "";
     model = "pc105";
   };
 
   # Configure console keymap
-  console.keyMap = "uk";
+  console.keyMap = lib.mkForce "us";
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -329,6 +331,7 @@ in
       "render"
       "kvm"
       "libvirtd"
+      "dialout"
     ];
     shell = pkgs.fish;
     packages = with pkgs; [
@@ -338,7 +341,8 @@ in
     ];
   };
 
-  systemd.tmpfiles.rules = [
+  systemd.tmpfiles.rules = lib.mkAfter [
+    "q /tmp 1777 root root 2d"
     "d /var/lib/nix-remote-builder 0700 root root -"
     "d /srv/steam-library 2775 root steam -"
     "d /srv/steam-library/steamapps 2775 root steam -"
@@ -365,10 +369,10 @@ in
       # extraArgs = "-silent -pipewire";
       extraArgs = "-silent";
       extraEnv = {
-        DRI_PRIME = "pci-0000_03_00_0!";
-        MESA_VK_DEVICE_SELECT = "1002:7550!";
-        LIBVA_DRIVER_NAME = "radeonsi";
-        LIBVA_DRIVERS_PATH = "/run/opengl-driver-32/lib/dri:/run/opengl-driver/lib/dri";
+        DRI_PRIME = "pci-0000_03_00_0";
+        # LIBVA_DRIVER_NAME = "radeonsi";
+        VKD3D_CONFIG = "descriptor_heap";
+        PROTON_ENABLE_WAYLAND = 1;
       };
     };
     protontricks.enable = true;

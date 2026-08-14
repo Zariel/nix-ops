@@ -1,6 +1,51 @@
 { pkgs, osConfig, ... }:
 let
   lockCommand = "${pkgs.systemd}/bin/systemctl --user start niri-lock.service";
+  clipboardShortcut = pkgs.writeShellScript "niri-clipboard-shortcut" ''
+    set -eu
+
+    case "''${1-}" in
+      copy)
+        key="c"
+        ;;
+      cut)
+        key="x"
+        ;;
+      paste)
+        key="v"
+        ;;
+      *)
+        echo "usage: niri-clipboard-shortcut copy|cut|paste" >&2
+        exit 2
+        ;;
+    esac
+
+    focused_app="$(
+      ${pkgs.niri}/bin/niri msg --json focused-window 2>/dev/null |
+        ${pkgs.jq}/bin/jq -r '.app_id // empty'
+    )"
+
+    case "$focused_app" in
+      Alacritty|com.mitchellh.ghostty|foot|footclient|kitty|org.gnome.Console|org.kde.konsole|org.wezfurlong.wezterm)
+        exec ${pkgs.wtype}/bin/wtype \
+          -M ctrl -M shift -P "$key" -p "$key" -m shift -m ctrl
+        ;;
+      *)
+        exec ${pkgs.wtype}/bin/wtype \
+          -M ctrl -P "$key" -p "$key" -m ctrl
+        ;;
+    esac
+  '';
+  copyTmuxSelection = pkgs.writeShellScript "copy-tmux-selection" ''
+    set -eu
+
+    selection_file="$(${pkgs.coreutils}/bin/mktemp --tmpdir niri-tmux-copy.XXXXXX)"
+    trap '${pkgs.coreutils}/bin/rm -f -- "$selection_file"' EXIT HUP INT TERM
+
+    ${pkgs.coreutils}/bin/cat > "$selection_file"
+    ${pkgs.wl-clipboard}/bin/wl-copy < "$selection_file"
+    ${pkgs.wl-clipboard}/bin/wl-copy --primary < "$selection_file"
+  '';
 in
 {
   xdg.autostart.enable = true;
@@ -10,10 +55,20 @@ in
       input {
           keyboard {
               xkb {
-                  layout "gb"
-                  variant "mac"
+                  layout "us"
+                  variant ""
               }
           }
+
+          mouse {
+              accel-profile "flat"
+          }
+      }
+
+      output "Dell Inc. DELL S2725QS 8WQJ364" {
+          mode "3840x2160@120.000"
+          scale 1.5
+          variable-refresh-rate
       }
 
       layout {
@@ -151,14 +206,20 @@ in
           XF86AudioPlay allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "play-pause"; }
           XF86AudioNext allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "next"; }
           XF86AudioPrev allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "previous"; }
+
+          // QMK's semantic clipboard HID keycodes arrive as these XKB keysyms.
+          // Translate them to each focused application's conventional shortcut.
+          XF86Copy repeat=false { spawn "${clipboardShortcut}" "copy"; }
+          XF86Cut repeat=false { spawn "${clipboardShortcut}" "cut"; }
+          XF86Paste repeat=false { spawn "${clipboardShortcut}" "paste"; }
       }
     '';
   };
 
   programs.tmux.extraConfig = ''
-    # In the local Niri session, copy tmux selections straight to Wayland.
-    bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
-    bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
+    # Make tmux selections available to both explicit paste and middle-click paste.
+    bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "${copyTmuxSelection}"
+    bind-key -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "${copyTmuxSelection}"
   '';
 
   systemd.user.services.onepassword = {

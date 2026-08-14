@@ -18,13 +18,12 @@
     nvtopPackages.amd
     corectrl
 
-    dovi-tool
+    # dovi-tool
     mediainfo
-    ffmpeg
-    mkvtoolnix-cli
+    # ffmpeg
+    # mkvtoolnix-cli
 
     zmk-studio
-    beads
     git-commit-wrapped
     go
     gopls
@@ -97,8 +96,72 @@
       ];
 
       blacklist = "mpv";
+      # Start with the horizontal summary and cycle only through the layouts
+      # defined below: summary, detailed telemetry, and FPS-only.
+      preset = [
+        2
+        4
+        1
+      ];
+      toggle_preset = "Shift_R+F10";
       fps_limit_method = "early";
       toggle_fps_limit = "Shift_L+F1";
     };
   };
+
+  xdg.configFile."MangoHud/presets.conf".text = ''
+    # The preset order is configured by `preset` above.
+
+    # 1: FPS-only, in the top-left corner.
+    [preset 1]
+    legacy_layout=0
+    position=top-left
+    fps
+    fps_only=1
+    frametime=0
+    frame_timing=0
+    cpu_stats=0
+    gpu_stats=0
+
+    # 2: Default horizontal summary.
+    [preset 2]
+    legacy_layout=0
+    horizontal
+    position=top-left
+    fps
+    frame_timing
+    gpu_stats
+    gpu_temp
+    cpu_stats
+    cpu_temp
+    ram
+    vram
+    engine_version
+    wine
+    winesync
+    arch
+
+    # 4: Detailed hardware and rendering telemetry.
+    [preset 4]
+    legacy_layout=0
+    horizontal=0
+    position=top-left
+    fps
+    frame_timing
+    gpu_stats
+    gpu_temp
+    gpu_core_clock
+    cpu_stats
+    cpu_temp
+    cpu_mhz
+    core_load
+    ram
+    vram
+    engine_version
+    vulkan_driver
+    present_mode
+    wine
+    winesync
+    fsr
+  '';
 }
