@@ -59,12 +59,25 @@
   # User-specific git configuration
   programs.git = {
     enable = true;
+    ignores = [
+      "**/.codex"
+    ];
     settings = {
       user = {
         name = "Chris Bannister";
         email = "c.bannister@gmail.com";
       };
       push.autoSetupRemote = true;
+    };
+  };
+
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      user = {
+        name = "Chris Bannister";
+        email = "c.bannister@gmail.com";
+      };
     };
   };
 
