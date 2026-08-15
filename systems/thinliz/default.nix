@@ -15,6 +15,9 @@ let
   moonlightOutputRefresh = "60";
   moonlightOutputWidth = "3840";
 
+  # Moonlight 6.1 still uses Vulkan decode fields removed in FFmpeg 9.
+  moonlightQt = pkgs.moonlight-qt.override { ffmpeg = pkgs.ffmpeg_8; };
+
   moonlightDiagnostics = pkgs.writeShellScriptBin "lounge-moonlight-diagnostics" ''
     set +e
 
@@ -104,7 +107,7 @@ let
 
     ${moonlightDiagnostics}/bin/lounge-moonlight-diagnostics || true
 
-    exec ${pkgs.moonlight-qt}/bin/moonlight >>"$log_dir/session.log" 2>&1
+    exec ${moonlightQt}/bin/moonlight >>"$log_dir/session.log" 2>&1
   '';
 
   moonlightAppLoop = pkgs.writeShellScript "moonlight-app-loop" ''
@@ -410,7 +413,7 @@ in
     libva-utils
     linux-firmware
     mesa-demos
-    moonlight-qt
+    moonlightQt
     moonlightDiagnostics
     pciutils
     sway

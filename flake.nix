@@ -176,24 +176,21 @@
           };
       });
 
-      packages = forAllSystems (system: {
-        git-commit-wrapped =
-          let
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = [ localOverlay ];
-            };
-          in
-          pkgs.git-commit-wrapped;
-        proton-ge-bin-10 =
-          let
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = [ localOverlay ];
-            };
-          in
-          pkgs.proton-ge-bin-10;
-      });
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ localOverlay ];
+          };
+        in
+        {
+          git-commit-wrapped = pkgs.git-commit-wrapped;
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          proton-ge-bin-10 = pkgs.proton-ge-bin-10;
+        }
+      );
 
       overlays.default = localOverlay;
 
@@ -267,7 +264,9 @@
 
       checks =
         nixpkgs.lib.recursiveUpdate
-          (builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib)
+          {
+            x86_64-linux = deploy-rs.lib.x86_64-linux.deployChecks self.deploy;
+          }
           (
             forAllSystems (system: {
               formatting = treefmtEval.${system}.config.build.check self;
