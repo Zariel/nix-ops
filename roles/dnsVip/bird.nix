@@ -48,6 +48,16 @@ in
           };
         };
 
+        protocol bgp dnsvip_bgp {
+          local as ${toString cfg.bgpLocalAs};
+          neighbor ${cfg.bgpPeerIp} as ${toString cfg.bgpPeerAs};
+
+          ipv4 {
+            import none;
+            export where source = RTS_DEVICE;
+          };
+        }
+
         protocol direct dnsvip_direct_v6 {
           disabled;
           interface "dnsvip";

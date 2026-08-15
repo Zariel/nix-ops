@@ -9,6 +9,7 @@
   services.dnsVip = {
     enable = true;
     nodeIp = "10.254.53.2";
+    bgpPeerIp = "10.254.53.3";
   };
 
   programs.nh = {

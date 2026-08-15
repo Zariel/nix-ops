@@ -27,6 +27,24 @@ in
       description = "Node IP address (used for BIRD router-id and health check identification)";
       example = "10.254.53.0";
     };
+
+    bgpPeerIp = mkOption {
+      type = types.str;
+      description = "IPv4 address of the directly connected upstream BGP peer";
+      example = "10.254.53.1";
+    };
+
+    bgpLocalAs = mkOption {
+      type = types.ints.between 1 4294967294;
+      default = 65110;
+      description = "BGP autonomous system number used by the DNS nodes";
+    };
+
+    bgpPeerAs = mkOption {
+      type = types.ints.between 1 4294967294;
+      default = 65001;
+      description = "BGP autonomous system number used by the upstream peer";
+    };
   };
 
   config = mkIf cfg.enable {

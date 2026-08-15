@@ -2,7 +2,7 @@
 
 ## Overview
 
-The DNS infrastructure uses an anycast Virtual IP (VIP) setup with three redundant DNS nodes (dns1, dns2, dns3) providing high availability DNS services to the home network. All nodes advertise the same VIP address (`172.53.53.53`) via OSPF, and clients automatically connect to the nearest/healthiest node.
+The DNS infrastructure uses an anycast Virtual IP (VIP) setup with three redundant DNS nodes (dns1, dns2, dns3) providing high availability DNS services to the home network. All nodes advertise the same VIP address (`172.53.53.53`) via OSPF and BGP, and clients automatically connect to the nearest/healthiest node.
 
 ## Architecture
 
@@ -23,7 +23,7 @@ DNSdist (Load Balancer & Router)
 - **IPv4**: `172.53.53.53/32`
 - **IPv6**: `fd74:f571:d3bd:53::53/128`
 - Configured on dummy interface `dnsvip` on all three nodes
-- Advertised via BIRD/OSPF when node is healthy
+- Advertised via BIRD/OSPF and BGP when the node is healthy
 
 ### 2. DNS Nodes
 - **dns1**: `10.254.53.0/31` (Brocade peer: `10.254.53.1`)
@@ -61,13 +61,15 @@ DNSdist performs "lazy" health checks on backends:
    - LAN/Servers/K8s overlay networks → Cloudflare
    - Default → Cloudflare
 
-### 4. BIRD (OSPF Routing)
+### 4. BIRD (OSPF and BGP Routing)
 - Manages dynamic routing advertisement of VIP
-- Two protocols controlled by health check:
+- Two direct-route protocols controlled by the health check:
   - `dnsvip_direct` (IPv4)
   - `dnsvip_direct_v6` (IPv6)
-- When enabled: Advertises VIP via OSPF
-- When disabled: Withdraws VIP announcement
+- The IPv4 VIP is exported through OSPF and BGP; the IPv6 VIP remains exported through OSPFv3.
+- BGP uses local AS `65110` and peers with the directly connected upstream gateway in AS `65001`.
+- When enabled: the direct VIP routes become available to the routing protocols for export.
+- When disabled: OSPF and BGP withdraw the affected VIP announcements.
 - Provides automatic failover between nodes
 - Interfaces run in **point-to-point mode** toward the Brocade ICX7250, so each node has a dedicated adjacency and no DR/BDR elections can interfere with failover.
 
@@ -99,6 +101,7 @@ Key points:
 - Set the Proxmox port to **untagged** in that VLAN; other VLANs continue to be trunked on different switch ports.
 - Keep the hello/dead timers aligned with the BIRD configuration if you adjust them from defaults.
 - Verify with `show ip ospf neighbor` that each VE forms a single `Full` adjacency after the node boots.
+- In the upstream BGP configuration (local AS `65001`), configure an eBGP neighbor for each DNS node using remote AS `65110`; verify that the switch learns `172.53.53.53/32` from all healthy nodes.
 
 ### 5. Backend Services
 
@@ -149,12 +152,12 @@ The health check should **NOT** withdraw VIP for:
 ```
 Health Check PASSES:
 ├─ If not advertising: increment success_count
-│  └─ If success_count >= 2: Enable BIRD OSPF protocols
+│  └─ If success_count >= 2: Enable BIRD direct VIP routes
 └─ If advertising: Reset success_count
 
 Health Check FAILS:
 ├─ If advertising: increment failure_count
-│  └─ If failure_count >= 3: Disable BIRD OSPF protocols
+│  └─ If failure_count >= 3: Disable BIRD direct VIP routes
 └─ If not advertising: Reset failure_count
 ```
 
@@ -237,6 +240,8 @@ journalctl -u dns-healthcheck -f
 # Check BIRD protocol status
 birdc show protocols dnsvip_direct
 birdc show protocols dnsvip_direct_v6
+birdc show protocols dnsvip_bgp
+birdc show route export dnsvip_bgp
 
 # Check DNSdist stats
 curl -s http://localhost:5383/metrics

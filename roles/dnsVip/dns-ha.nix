@@ -48,7 +48,7 @@ let
 
     enable_bird_advertisement() {
       if ! is_bird_advertising; then
-        log "HEALTH OK - Enabling BIRD OSPF advertisement after $success_count consecutive successes"
+        log "HEALTH OK - Enabling BIRD VIP advertisements after $success_count consecutive successes"
         ${pkgs.bird2}/bin/birdc enable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to enable BIRD IPv4 protocol"
         ${pkgs.bird2}/bin/birdc enable "$BIRD_PROTOCOL_V6" > /dev/null 2>&1 || log "WARNING: Failed to enable BIRD IPv6 protocol"
         advertising=true
@@ -59,7 +59,7 @@ let
 
     disable_bird_advertisement() {
       if is_bird_advertising; then
-        log "HEALTH FAILED - Disabling BIRD OSPF advertisement after $failure_count consecutive failures"
+        log "HEALTH FAILED - Disabling BIRD VIP advertisements after $failure_count consecutive failures"
         ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL" > /dev/null 2>&1 || log "WARNING: Failed to disable BIRD IPv4 protocol"
         ${pkgs.bird2}/bin/birdc disable "$BIRD_PROTOCOL_V6" > /dev/null 2>&1 || log "WARNING: Failed to disable BIRD IPv6 protocol"
         advertising=false
@@ -118,7 +118,7 @@ let
 in
 {
   options.services.dnsHealthcheck = {
-    enable = mkEnableOption "DNS health check with BIRD OSPF advertisement control";
+    enable = mkEnableOption "DNS health check with BIRD VIP advertisement control";
 
     nodeIp = mkOption {
       type = types.str;
@@ -153,13 +153,13 @@ in
     failureThreshold = mkOption {
       type = types.int;
       default = 3;
-      description = "Consecutive failures before disabling OSPF advertisement";
+      description = "Consecutive failures before disabling VIP advertisements";
     };
 
     successThreshold = mkOption {
       type = types.int;
       default = 2;
-      description = "Consecutive successes before enabling OSPF advertisement";
+      description = "Consecutive successes before enabling VIP advertisements";
     };
 
     dnsTimeout = mkOption {
@@ -171,7 +171,7 @@ in
 
   config = mkIf cfg.enable {
     systemd.services.dns-healthcheck = {
-      description = "DNS Service Health Monitor with BIRD OSPF Advertisement Control";
+      description = "DNS Service Health Monitor with BIRD VIP Advertisement Control";
 
       after = [
         "network-online.target"
