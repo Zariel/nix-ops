@@ -114,8 +114,8 @@
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.${name};
 
-            # Extended timeouts for OSPF adjacency formation during deployments
-            activationTimeout = 300; # 5 minutes (allows for OSPF convergence)
+            # Extended timeouts for routing convergence during deployments
+            activationTimeout = 300; # 5 minutes (allows for BGP convergence)
             confirmTimeout = 45; # 45 seconds (slightly longer than default 30s)
 
             # Enable automatic rollback on failure

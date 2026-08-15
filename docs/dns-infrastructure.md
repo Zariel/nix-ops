@@ -2,7 +2,7 @@
 
 ## Overview
 
-The DNS infrastructure uses an anycast Virtual IP (VIP) setup with three redundant DNS nodes (dns1, dns2, dns3) providing high availability DNS services to the home network. All nodes advertise the same VIP address (`172.53.53.53`) via OSPF and BGP, and clients automatically connect to the nearest/healthiest node.
+The DNS infrastructure uses an anycast Virtual IP (VIP) setup with three redundant DNS nodes (dns1, dns2, dns3) providing high availability DNS services to the home network. All nodes advertise the same VIP address (`172.53.53.53`) via BGP, and clients automatically connect to the nearest/healthiest node.
 
 ## Architecture
 
@@ -21,15 +21,15 @@ DNSdist (Load Balancer & Router)
 
 ### 1. Virtual IP (VIP)
 - **IPv4**: `172.53.53.53/32`
-- **IPv6**: `fd74:f571:d3bd:53::53/128`
+- **IPv6 (local only)**: `fd74:f571:d3bd:53::53/128`
 - Configured on dummy interface `dnsvip` on all three nodes
-- Advertised via BIRD/OSPF and BGP when the node is healthy
+- The IPv4 VIP is advertised via BIRD/BGP when the node is healthy; the IPv6 VIP is not advertised.
 
 ### 2. DNS Nodes
 - **dns1**: `10.254.53.0/31` (Brocade peer: `10.254.53.1`)
 - **dns2**: `10.254.53.2/31` (Brocade peer: `10.254.53.3`)
 - **dns3**: `10.254.53.4/31` (Brocade peer: `10.254.53.5`)
-- Each DNS NIC uses its own `/31` point-to-point link carved from `10.254.53.0/24`, eliminating DR/BDR dependency on the shared LAN.
+- Each DNS NIC uses its own `/31` point-to-point link carved from `10.254.53.0/24` for direct eBGP peering.
 
 ### 3. DNSdist (Frontend Load Balancer)
 - Listens on VIP address (`172.53.53.53:53`)
@@ -61,17 +61,15 @@ DNSdist performs "lazy" health checks on backends:
    - LAN/Servers/K8s overlay networks → Cloudflare
    - Default → Cloudflare
 
-### 4. BIRD (OSPF and BGP Routing)
+### 4. BIRD (BGP Routing)
 - Manages dynamic routing advertisement of VIP
-- Two direct-route protocols controlled by the health check:
-  - `dnsvip_direct` (IPv4)
-  - `dnsvip_direct_v6` (IPv6)
-- The IPv4 VIP is exported through OSPF and BGP; the IPv6 VIP remains exported through OSPFv3.
+- The health check controls the `dnsvip_direct` IPv4 route.
+- The IPv4 VIP is exported through BGP; IPv6 is not advertised.
 - BGP uses local AS `65110` and peers with the directly connected upstream gateway in AS `65001`.
-- When enabled: the direct VIP routes become available to the routing protocols for export.
-- When disabled: OSPF and BGP withdraw the affected VIP announcements.
+- When enabled: the direct VIP route becomes available to BGP for export.
+- When disabled: BGP withdraws the VIP announcement.
 - Provides automatic failover between nodes
-- Interfaces run in **point-to-point mode** toward the Brocade ICX7250, so each node has a dedicated adjacency and no DR/BDR elections can interfere with failover.
+- Each node uses a dedicated point-to-point link toward the Brocade ICX7250.
 
 #### Brocade ICX7250 configuration
 
@@ -88,10 +86,6 @@ vlan 3101 name DNS1-PTP
 !
 interface ve 3101
  ip address 10.254.53.1 255.255.255.254
- ip ospf area 0
- ip ospf network point-to-point
- ip ospf hello-interval 1
- ip ospf dead-interval 3
  exit
 !
 ```
@@ -99,8 +93,6 @@ interface ve 3101
 Key points:
 - Use one VLAN/VE per DNS node so each link is isolated.
 - Set the Proxmox port to **untagged** in that VLAN; other VLANs continue to be trunked on different switch ports.
-- Keep the hello/dead timers aligned with the BIRD configuration if you adjust them from defaults.
-- Verify with `show ip ospf neighbor` that each VE forms a single `Full` adjacency after the node boots.
 - In the upstream BGP configuration (local AS `65001`), configure an eBGP neighbor for each DNS node using remote AS `65110`; verify that the switch learns `172.53.53.53/32` from all healthy nodes.
 
 ### 5. Backend Services
@@ -239,7 +231,6 @@ journalctl -u dns-healthcheck -f
 
 # Check BIRD protocol status
 birdc show protocols dnsvip_direct
-birdc show protocols dnsvip_direct_v6
 birdc show protocols dnsvip_bgp
 birdc show route export dnsvip_bgp
 

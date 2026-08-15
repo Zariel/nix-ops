@@ -32,22 +32,6 @@ in
           };
         }
 
-        protocol ospf v2 ospf4 {
-          ipv4 {
-            import none;
-            export where source = RTS_DEVICE;
-          };
-
-          area 0.0.0.0 {
-            interface "ens*" {
-              type pointopoint;
-              hello 1;
-              dead 3;
-              cost 10;
-            };
-          };
-        };
-
         protocol bgp dnsvip_bgp {
           local as ${toString cfg.bgpLocalAs};
           neighbor ${cfg.bgpPeerIp} as ${toString cfg.bgpPeerAs};
@@ -57,35 +41,6 @@ in
             export where source = RTS_DEVICE;
           };
         }
-
-        protocol direct dnsvip_direct_v6 {
-          disabled;
-          interface "dnsvip";
-          ipv6;
-        }
-
-        protocol kernel {
-          ipv6 {
-            import none;
-            export all;
-          };
-        }
-
-        protocol ospf v3 ospf6 {
-          router id ${cfg.nodeIp};
-
-          ipv6 {
-            import none;
-            export where source = RTS_DEVICE;
-          };
-
-          area 0.0.0.0 {
-            interface "ens*" {
-              type pointopoint;
-              cost 10;
-            };
-          };
-        };
       '';
     };
   };
