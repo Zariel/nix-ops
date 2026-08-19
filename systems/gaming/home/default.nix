@@ -5,6 +5,8 @@
   ...
 }:
 let
+  home = config.home.homeDirectory;
+
   llm-agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
   beadsPackage = llm-agents.beads;
@@ -69,7 +71,7 @@ in
     enableDefaultConfig = false;
 
     matchBlocks."*" = {
-      identityAgent = "~/.1password/agent.sock";
+      identityAgent = "${home}/.1password/agent.sock";
     };
   };
 
@@ -109,5 +111,5 @@ in
     gitCredentialHelper.enable = true;
   };
 
-  programs.nh.osFlake = "/home/chris/nix-ops#nixosConfigurations.gaming";
+  programs.nh.osFlake = "${home}/nix-ops#nixosConfigurations.gaming";
 }
