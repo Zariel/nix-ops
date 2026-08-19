@@ -11,6 +11,7 @@
 
 let
   gamemodeSteamCompat = import ./pkgs/gamemode-steam-compat.nix { inherit pkgs; };
+  protonGeBin10 = pkgs.callPackage ../../packages/proton-ge-bin-10 { };
 in
 {
   imports = [
@@ -383,7 +384,7 @@ in
     extraPackages = [ gamemodeSteamCompat ];
     extraCompatPackages = with pkgs; [
       proton-ge-bin
-      proton-ge-bin-10
+      protonGeBin10
     ];
   };
 

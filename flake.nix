@@ -77,13 +77,6 @@
         treefmt-nix.lib.evalModule pkgs ./treefmt.nix
       );
 
-      localOverlay = nixpkgs.lib.composeManyExtensions [
-        (import ./overlays/proton-ge-bin-10.nix)
-        (final: _prev: {
-          git-commit-wrapped = final.callPackage ./packages/git-commit-wrapped { };
-        })
-      ];
-
       mkSystem =
         {
           name,
@@ -95,9 +88,6 @@
             inherit inputs;
           };
           modules = [
-            {
-              nixpkgs.overlays = [ localOverlay ];
-            }
             ./roles/base
             sops-nix.nixosModules.sops
             ./systems/${name}
@@ -179,20 +169,12 @@
       packages = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ localOverlay ];
-          };
+          pkgs = import nixpkgs { inherit system; };
         in
-        {
-          git-commit-wrapped = pkgs.git-commit-wrapped;
-        }
-        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          proton-ge-bin-10 = pkgs.proton-ge-bin-10;
+        nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          proton-ge-bin-10 = pkgs.callPackage ./packages/proton-ge-bin-10 { };
         }
       );
-
-      overlays.default = localOverlay;
 
       nixosConfigurations = {
         dns1 = mkSystem {

@@ -11,6 +11,8 @@ let
 
   beadsPackage = llm-agents.beads;
 
+  formatCommitMessage = pkgs.callPackage ../pkgs/format-commit-message.nix { };
+
   bd = pkgs.writeShellApplication {
     name = "bd";
 
@@ -55,6 +57,7 @@ in
     mkbrr
     llm-agents.beads-rust
     bd
+    formatCommitMessage
   ];
 
   home.shellAliases = {

@@ -4,6 +4,9 @@
   osConfig,
   ...
 }:
+let
+  protonGeBin10 = pkgs.callPackage ../../../packages/proton-ge-bin-10 { };
+in
 {
   home.packages = with pkgs; [
     wineWow64Packages.full
@@ -24,7 +27,6 @@
     # mkvtoolnix-cli
 
     zmk-studio
-    git-commit-wrapped
     go
     gopls
   ];
@@ -45,7 +47,7 @@
     ];
     protonPackages = with pkgs; [
       proton-ge-bin
-      proton-ge-bin-10
+      protonGeBin10
     ];
     extraPackages = with pkgs; [
       mangohud
