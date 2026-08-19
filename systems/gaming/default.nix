@@ -458,7 +458,6 @@ in
     iotop
     lm_sensors
     pciutils
-    gcc
     linux-firmware
     file
     lsof
