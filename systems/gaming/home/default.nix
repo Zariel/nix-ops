@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  config,
   ...
 }:
 let
@@ -82,12 +83,12 @@ in
     });
     settings = {
       sandbox_mode = "workspace-write";
-      # sandbox_workspace_write = {
-      #   network_access = true;
-      #   writable_roots = [
-      #     "/dev/kvm"
-      #   ];
-      # };
+      sandbox_workspace_write = {
+        network_access = true;
+        writable_roots = [
+          "${config.xdg.cacheHome}/go-build"
+        ];
+      };
       model_reasoning_effort = "high";
       plan_mode_reasoning_effort = "xhigh";
       model_reasoning_summary = "detailed";
@@ -96,57 +97,11 @@ in
 
       features.multi_agent = true;
       features.apps = false;
+      skills = {
+        draft-commit = ./apps/codex/skills/draft-commit.md;
+      };
     };
-    context = ''
-      ## Solution-space discipline
-        Optimize for choosing the right problem and ownership model before optimizing
-      an implementation.
-
-      For cheaply reversible implementation decisions, proceed directly.
-
-      Before making a decision that is expensive to reverse, first identify the
-      actual requirement and hard constraints, independently of the current code.
-
-      Then explore materially different solution families before selecting one.
-      In particular consider whether the requirement can be satisfied by:
-
-      - removing the mechanism entirely
-      - delegating responsibility to an existing primitive
-      - solving the problem at a different layer
-      - changing the interface so the problem disappears
-      - deriving state instead of storing or reconciling it
-      - using a standard mechanism instead of custom machinery
-
-      Do not generate alternatives merely for completeness. Explore when the
-      decision has meaningful cost of reversal or significant uncertainty.
-
-      For especially consequential architectural decisions, prefer independent
-      solution proposals before selecting an approach rather than asking one
-      proposal to critique itself.
-
-      After implementation begins, reopen the architectural decision when new
-      information materially changes an assumption or complexity grows beyond what
-      the chosen model predicted.
-
-      At that point, do not merely simplify the implementation. Ask whether the
-      chosen solution family is still correct.
-    '';
-    # rules.default = ''
-    #   prefix_rule(pattern=["kubectl"], decision="allow")
-    #   prefix_rule(pattern=["cargo", "test"], decision="allow")
-    #   prefix_rule(pattern=["nix", "eval"], decision="allow")
-    #   prefix_rule(pattern=["nix", "build"], decision="allow")
-    #   prefix_rule(pattern=["nix", "fmt"], decision="allow")
-    #   prefix_rule(pattern=["nix", "shell"], decision="allow")
-    #   prefix_rule(pattern=["mkosi", "-f", "build"], decision="allow")
-    #   prefix_rule(pattern=["mkosi"], decision="allow")
-    #   prefix_rule(pattern=["nix", "develop"], decision="allow")
-    #   prefix_rule(pattern=["git", "add"], decision="allow")
-    #   prefix_rule(pattern=["git", "commit-wrapped"], decision="allow")
-    #   prefix_rule(pattern=["rg"], decision="allow")
-    #   prefix_rule(pattern=["bd"], decision="allow")
-    #   prefix_rule(pattern=["podman"], decision="allow")
-    # '';
+    context = builtins.readFile ./apps/codex/context.md;
   };
 
   programs.gh = {
