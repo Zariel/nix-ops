@@ -5,7 +5,7 @@
   ...
 }:
 let
-  protonGeBin10 = pkgs.callPackage ../../../packages/proton-ge-bin-10 { };
+  protonGeBin10 = pkgs.callPackage ../pkgs/proton-ge-bin-10.nix { };
 in
 {
   home.packages = with pkgs; [

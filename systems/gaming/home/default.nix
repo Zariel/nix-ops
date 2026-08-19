@@ -1,15 +1,15 @@
 {
   pkgs,
-  inputs,
+  llm-agents,
   config,
   ...
 }:
 let
   home = config.home.homeDirectory;
 
-  llm-agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+  llmAgentPackages = llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
-  beadsPackage = llm-agents.beads;
+  beadsPackage = llmAgentPackages.beads;
 
   formatCommitMessage = pkgs.callPackage ../pkgs/format-commit-message.nix { };
 
@@ -55,7 +55,7 @@ in
     rustup
     kubectl
     mkbrr
-    llm-agents.beads-rust
+    llmAgentPackages.beads-rust
     bd
     formatCommitMessage
   ];
@@ -80,7 +80,7 @@ in
 
   programs.codex = {
     enable = true;
-    package = llm-agents.codex.overrideAttrs (old: {
+    package = llmAgentPackages.codex.overrideAttrs (old: {
       cargoBuildFlags = old.cargoBuildFlags ++ [
         "--package"
         "codex-code-mode-host"

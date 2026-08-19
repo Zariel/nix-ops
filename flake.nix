@@ -38,16 +38,6 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # codex-cli-nix = {
-    #   url = "github:sadjow/codex-cli-nix";
-    #   # inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
-    # beads = {
-    #   url = "github:steveyegge/beads";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
   };
 
   outputs =
@@ -57,12 +47,13 @@
       home-manager,
       deploy-rs,
       disko,
+      llm-agents,
       treefmt-nix,
       catppuccin,
       nixos-hardware,
       sops-nix,
       ...
-    }@inputs:
+    }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
@@ -84,9 +75,6 @@
         }:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = {
-            inherit inputs;
-          };
           modules = [
             ./roles/base
             sops-nix.nixosModules.sops
@@ -114,42 +102,22 @@
           };
         };
 
-      mkHome =
-        {
-          config,
-          ...
-        }:
-        let
-          hostPath = "${toString ./systems}/${config.networking.hostName}";
-          hostHome =
-            if builtins.pathExists "${hostPath}/home/default.nix" then
-              builtins.path {
-                path = "${hostPath}/home";
-              }
-            else
-              builtins.path {
-                path = "${hostPath}/home.nix";
-              };
-        in
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.chris = {
-              imports = [
-                ./homes/chris
-                hostHome
-                catppuccin.homeModules.catppuccin
-              ];
-            };
-            extraSpecialArgs = {
-              inherit
-                inputs
-                self
-                ;
-            };
+      mkHome = hostHome: {
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users.chris = {
+            imports = [
+              ./homes/chris
+              hostHome
+              catppuccin.homeModules.catppuccin
+            ];
+          };
+          extraSpecialArgs = {
+            inherit llm-agents;
           };
         };
+      };
     in
     {
       formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
@@ -165,16 +133,6 @@
             ];
           };
       });
-
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          proton-ge-bin-10 = pkgs.callPackage ./packages/proton-ge-bin-10 { };
-        }
-      );
 
       nixosConfigurations = {
         dns1 = mkSystem {
@@ -205,7 +163,7 @@
           extraModules = [
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
-            mkHome
+            (mkHome ./systems/gaming/home)
           ];
         };
         thinliz = mkSystem {
@@ -216,7 +174,7 @@
             home-manager.nixosModules.home-manager
             nixos-hardware.nixosModules.common-cpu-intel
             nixos-hardware.nixosModules.common-gpu-intel
-            mkHome
+            (mkHome ./systems/thinliz/home.nix)
           ];
         };
       };
@@ -244,15 +202,14 @@
         };
       };
 
-      checks =
-        nixpkgs.lib.recursiveUpdate
-          {
-            x86_64-linux = deploy-rs.lib.x86_64-linux.deployChecks self.deploy;
-          }
-          (
-            forAllSystems (system: {
-              formatting = treefmtEval.${system}.config.build.check self;
-            })
-          );
+      checks = forAllSystems (
+        system:
+        {
+          formatting = treefmtEval.${system}.config.build.check self;
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") (
+          deploy-rs.lib.x86_64-linux.deployChecks self.deploy
+        )
+      );
     };
 }
