@@ -1,6 +1,7 @@
 { pkgs, osConfig, ... }:
 let
   lockCommand = "${pkgs.systemd}/bin/systemctl --user start niri-lock.service";
+  powerMenu = import ./power-menu.nix { inherit pkgs; };
   clipboardShortcut = pkgs.writeShellScript "niri-clipboard-shortcut" ''
     set -eu
 
@@ -163,7 +164,7 @@ in
           Mod+E { spawn "${pkgs.kdePackages.dolphin}/bin/dolphin"; }
           Mod+B { spawn "${pkgs.firefox}/bin/firefox"; }
           Mod+Alt+L { spawn-sh "${lockCommand}"; }
-          Mod+Shift+E { spawn "${pkgs.wlogout}/bin/wlogout"; }
+          Mod+Shift+E { spawn "${powerMenu}/bin/power-menu"; }
           Mod+Ctrl+Shift+E { quit; }
 
           Mod+Q { close-window; }

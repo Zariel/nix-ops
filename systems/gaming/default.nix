@@ -503,7 +503,6 @@ in
     qmk
     qmk-udev-rules
     xwayland-satellite
-    wlogout
     (catppuccin-kde.override {
       flavour = [ "mocha" ];
       accents = [ "mauve" ];

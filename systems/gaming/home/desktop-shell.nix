@@ -1,6 +1,7 @@
 { pkgs, lib, ... }:
 let
   lockCommand = "${pkgs.systemd}/bin/systemctl --user start niri-lock.service";
+  powerMenu = import ./power-menu.nix { inherit pkgs; };
   keyboardBluetoothNotifications = pkgs.writeShellScript "keyboard-bluetooth-notifications" ''
     set -eu
 
@@ -57,32 +58,28 @@ let
     device_name="TOTEM"
     device_path="/org/bluez/hci0/dev_ED_29_B4_2A_68_9C"
     connected="$(${pkgs.systemd}/bin/busctl get-property org.bluez "$device_path" org.bluez.Device1 Connected 2>/dev/null | ${pkgs.gawk}/bin/awk '{ print $2 }' || true)"
-    percentage="$(${pkgs.systemd}/bin/busctl get-property org.bluez "$device_path" org.bluez.Battery1 Percentage 2>/dev/null | ${pkgs.gawk}/bin/awk '{ print $2 }' || true)"
 
-    if [ "$connected" = "true" ]; then
-      if [ -n "$percentage" ]; then
-        text=" $percentage%"
-        tooltip="$device_name connected • Battery $percentage%"
-        pct="$percentage"
-      else
-        text=" on"
-        tooltip="$device_name connected"
-        pct="0"
-      fi
-      class="connected"
+    if [ "$connected" != "true" ]; then
+      ${pkgs.jq}/bin/jq -cn '{ text: "" }'
+      exit 0
+    fi
+
+    percentage="$(${pkgs.systemd}/bin/busctl get-property org.bluez "$device_path" org.bluez.Battery1 Percentage 2>/dev/null | ${pkgs.gawk}/bin/awk '{ print $2 }' || true)"
+    if [ -n "$percentage" ]; then
+      text=" $percentage%"
+      tooltip="$device_name connected • Battery $percentage%"
+      pct="$percentage"
     else
-      text=" off"
-      tooltip="$device_name disconnected"
+      text=" on"
+      tooltip="$device_name connected"
       pct="0"
-      class="disconnected"
     fi
 
     ${pkgs.jq}/bin/jq -cn \
       --arg text "$text" \
       --arg tooltip "$tooltip" \
-      --arg class "$class" \
       --argjson percentage "$pct" \
-      '{ text: $text, tooltip: $tooltip, class: $class, percentage: $percentage }'
+      '{ text: $text, tooltip: $tooltip, class: "connected", percentage: $percentage }'
   '';
   niriStackStatus = pkgs.writeTextFile {
     name = "niri-stack-status";
@@ -324,10 +321,10 @@ let
 in
 {
   home.packages = with pkgs; [
+    powerMenu
     xwayland-satellite
     pavucontrol
     playerctl
-    wlogout
     wl-clipboard
     grim
     slurp
@@ -378,6 +375,7 @@ in
         exec = "${keyboardBluetoothStatus}";
         return-type = "json";
         interval = 30;
+        hide-empty-text = true;
         tooltip = true;
       };
 
@@ -401,7 +399,7 @@ in
         format = "";
         tooltip = true;
         tooltip-format = "Power menu";
-        on-click = "${pkgs.wlogout}/bin/wlogout";
+        on-click = "${powerMenu}/bin/power-menu";
       };
     };
     style = ''
@@ -455,10 +453,6 @@ in
 
       #custom-keyboard.connected {
         color: #a6e3a1;
-      }
-
-      #custom-keyboard.disconnected {
-        color: #f38ba8;
       }
 
       #custom-power {
