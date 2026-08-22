@@ -219,13 +219,13 @@ in
           Ctrl+Print { screenshot-screen; }
           Alt+Print { screenshot-window; }
 
-          XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"; }
-          XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
-          XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
-          XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
-          XF86AudioPlay allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "play-pause"; }
-          XF86AudioNext allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "next"; }
-          XF86AudioPrev allow-when-locked=true { spawn "${pkgs.playerctl}/bin/playerctl" "previous"; }
+          XF86AudioRaiseVolume allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "+10" "--max-volume" "100"; }
+          XF86AudioLowerVolume allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "-10"; }
+          XF86AudioMute allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "mute-toggle"; }
+          XF86AudioMicMute allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--input-volume" "mute-toggle"; }
+          XF86AudioPlay allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--playerctl" "play-pause"; }
+          XF86AudioNext allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--playerctl" "next"; }
+          XF86AudioPrev allow-when-locked=true { spawn "${pkgs.swayosd}/bin/swayosd-client" "--playerctl" "prev"; }
 
           // QMK's semantic clipboard HID keycodes arrive as these XKB keysyms.
           // Translate them to each focused application's conventional shortcut.

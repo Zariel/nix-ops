@@ -2,6 +2,56 @@
 let
   lockCommand = "${pkgs.systemd}/bin/systemctl --user start niri-lock.service";
   powerMenu = import ./power-menu.nix { inherit pkgs; };
+  swayosd = pkgs.swayosd.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./swayosd-top-right.patch ];
+  });
+  swayosdStyle = pkgs.writeText "swayosd-style.css" ''
+    window#osd {
+      border: 1px solid rgba(108, 112, 134, 0.65);
+      border-radius: 14px;
+      background: rgba(30, 30, 46, 0.9);
+      box-shadow: 0 8px 24px rgba(17, 17, 27, 0.45);
+      font-family: "Noto Sans", sans-serif;
+      font-size: 12px;
+    }
+
+    window#osd #container {
+      margin: 10px 12px;
+    }
+
+    window#osd image,
+    window#osd label {
+      color: #cdd6f4;
+    }
+
+    window#osd label {
+      font-weight: 600;
+    }
+
+    window#osd progressbar,
+    window#osd segmentedprogress {
+      min-height: 4px;
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+    }
+
+    window#osd trough,
+    window#osd segment {
+      min-height: inherit;
+      border: none;
+      border-radius: inherit;
+      background: #45475a;
+    }
+
+    window#osd progress,
+    window#osd segment.active {
+      min-height: inherit;
+      border: none;
+      border-radius: inherit;
+      background: #cba6f7;
+    }
+  '';
   keyboardBluetoothNotifications = pkgs.writeShellScript "keyboard-bluetooth-notifications" ''
     set -eu
 
@@ -587,6 +637,13 @@ in
         background: #cba6f7;
       }
     '';
+  };
+
+  services.swayosd = {
+    enable = true;
+    package = swayosd;
+    stylePath = swayosdStyle;
+    topMargin = 0.08;
   };
 
   programs.hyprlock = {
