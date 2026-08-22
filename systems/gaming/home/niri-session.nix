@@ -133,6 +133,13 @@ in
       }
 
       window-rule {
+          match app-id=r#"^steam$"# title=r#"^notificationtoasts_\d+_desktop$"#
+
+          open-focused false
+          default-floating-position x=8 y=8 relative-to="bottom-right"
+      }
+
+      window-rule {
           match app-id=r#"^Alacritty$"#
 
           draw-border-with-background false
