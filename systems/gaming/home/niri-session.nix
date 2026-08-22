@@ -116,11 +116,11 @@ in
           skip-at-startup
       }
 
-      /-window-rule {
+      window-rule {
           match app-id=r#"firefox$"#
           exclude title="^Picture-in-Picture$"
 
-          open-fullscreen true
+          open-maximized true
       }
 
       /-window-rule {
@@ -137,6 +137,12 @@ in
 
           open-focused false
           default-floating-position x=8 y=8 relative-to="bottom-right"
+      }
+
+      window-rule {
+          match app-id=r#"^mpv$"#
+
+          open-fullscreen true
       }
 
       window-rule {
