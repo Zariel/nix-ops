@@ -254,6 +254,7 @@ in
   };
   services.desktopManager.plasma6.enable = true;
   catppuccin = {
+    autoEnable = true;
     enable = true;
     flavor = "mocha";
     accent = "mauve";

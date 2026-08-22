@@ -522,7 +522,7 @@ in
           check_color = "rgb(137, 180, 250)";
           fail_color = "rgb(243, 139, 168)";
           outline_thickness = 2;
-          placeholder_text = ''<span foreground="##cdd6f4">Password</span>'';
+          placeholder_text = ''<span foreground="##cdd6f4">$PAMPROMPT</span>'';
           fail_text = ''<span foreground="##f38ba8">Authentication failed</span>'';
         }
       ];

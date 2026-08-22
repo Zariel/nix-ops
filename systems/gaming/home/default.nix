@@ -73,8 +73,8 @@ in
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks."*" = {
-      identityAgent = "${home}/.1password/agent.sock";
+    settings."*" = {
+      IdentityAgent = "${home}/.1password/agent.sock";
     };
   };
 

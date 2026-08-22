@@ -1,6 +1,7 @@
 { pkgs, lib, ... }:
 {
   catppuccin = {
+    autoEnable = true;
     enable = true;
     flavor = "mocha";
     accent = "mauve";
@@ -17,6 +18,7 @@
   home.file."/home/chris/.gtkrc-2.0".force = lib.mkForce true;
 
   home.pointerCursor = {
+    enable = true;
     name = "catppuccin-mocha-mauve-cursors";
     package = pkgs.catppuccin-cursors.mochaMauve;
   };
