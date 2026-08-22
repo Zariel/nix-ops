@@ -776,6 +776,34 @@ in
 
   systemd.user.services.waybar.Unit.ConditionEnvironment = lib.mkForce "XDG_CURRENT_DESKTOP=niri";
 
+  home.activation.restartWaybar = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
+    waybarChanged=
+    if [[ ! -v oldGenPath ]]; then
+      waybarChanged=1
+    else
+      for file in \
+        .config/waybar/config \
+        .config/waybar/style.css \
+        .config/systemd/user/waybar.service
+      do
+        if ! ${pkgs.diffutils}/bin/cmp --quiet \
+          "$oldGenPath/home-files/$file" \
+          "$newGenPath/home-files/$file" 2>/dev/null
+        then
+          waybarChanged=1
+          break
+        fi
+      done
+    fi
+
+    if [[ -n $waybarChanged ]] \
+      && ${pkgs.systemd}/bin/systemctl --user is-active --quiet waybar.service
+    then
+      run ${pkgs.systemd}/bin/systemctl --user restart waybar.service
+    fi
+    unset waybarChanged
+  '';
+
   systemd.user.services.niri-lock = {
     Unit = {
       Description = "Niri lock screen";
