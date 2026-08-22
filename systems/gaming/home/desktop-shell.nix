@@ -395,6 +395,10 @@ in
         "custom/niri-stack"
       ];
       modules-right = [
+        "privacy"
+        "gamemode"
+        "systemd-failed-units"
+        "idle_inhibitor"
         "custom/notifications"
         "tray"
         "custom/keyboard"
@@ -421,6 +425,51 @@ in
       };
 
       tray.spacing = 8;
+
+      privacy = {
+        icon-size = 16;
+        transition-duration = 150;
+        modules = [
+          {
+            type = "screenshare";
+            tooltip = true;
+          }
+          {
+            type = "audio-in";
+            tooltip = true;
+          }
+          {
+            type = "location";
+            tooltip = true;
+          }
+        ];
+      };
+
+      gamemode = {
+        format = "{glyph}";
+        glyph = "";
+        hide-not-running = true;
+        tooltip-format = "GameMode active for {count} client(s)";
+        use-icon = false;
+      };
+
+      systemd-failed-units = {
+        format = " {nr_failed}";
+        hide-on-ok = true;
+        system = true;
+        user = true;
+      };
+
+      idle_inhibitor = {
+        format = "{icon}";
+        format-icons = {
+          activated = "";
+          deactivated = "";
+        };
+        timeout = 60;
+        tooltip-format-activated = "Idle lock inhibited for up to 60 minutes";
+        tooltip-format-deactivated = "Allow idle lock\nClick to inhibit for 60 minutes";
+      };
 
       "custom/notifications" = {
         exec = "${pkgs.swaynotificationcenter}/bin/swaync-client -swb";
@@ -489,6 +538,10 @@ in
 
       #workspaces,
       #custom-niri-stack,
+      #privacy,
+      #gamemode,
+      #systemd-failed-units,
+      #idle_inhibitor,
       #custom-notifications,
       #tray,
       #custom-keyboard,
@@ -527,8 +580,24 @@ in
         color: #a6e3a1;
       }
 
-      #custom-notifications {
+      #privacy-item.screenshare,
+      #idle_inhibitor.activated {
+        color: #f9e2af;
+      }
+
+      #privacy-item.audio-in,
+      #systemd-failed-units.degraded {
+        color: #f38ba8;
+      }
+
+      #privacy-item.location,
+      #custom-notifications,
+      #gamemode.running {
         color: #cba6f7;
+      }
+
+      #idle_inhibitor.deactivated {
+        color: #6c7086;
       }
 
       #custom-power {
