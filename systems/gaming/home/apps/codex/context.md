@@ -44,15 +44,33 @@ chosen solution family is still correct.
 
 # Design Hygiene
 
-- Don't do more than is necessary
-- Use concise naming for function and test names, when needed add comments to add extra context for other reviewers
-- Code should be self evident of what it is doing
-- Keep the smallest reasonable API surface. Default to package-private types, helpers, and state models unless there is a clear caller outside the package in the current change.
-- Return concrete types from constructors. Accept interfaces at call sites where substitution is useful, but do not return interfaces just to hide implementation details.
-- Be suspicious of single-use pass-through helpers. If a helper only forwards to one concrete constructor or API and adds no meaningful abstraction, inline it.
-- Prefer names that describe the role of a value precisely, especially when distinguishing desired state, actual state, configuration, and runtime state.
-- When code performs side effects outside process memory, add a short comment for any non-obvious verification, locking, or ordering constraint.
-- Treat naming and visibility review comments as design feedback, not cosmetic feedback. They usually indicate that the code is exposing too much or describing itself imprecisely.
-- Keep internal reconciliation or transformation models local to the package unless they are intentionally part of the package API.
-- For tests, prefer each test owning one behavior or one direction of conversion. Avoid overlapping round-trip coverage when direct one-way tests are clearer.
-- Before finishing a change, do a quick pass over exports, constructor return types, single-use abstractions, naming accuracy, non-obvious invariants, and overlapping tests.
+- Don't do more than is necessary.
+- Prefer concise, precise function and test names. A name should distinguish
+  the concept within its scope rather than encode its full behavior; use local
+  context, subtest names, or comments for supporting detail.
+- Code should make what it does self-evident. Comments should explain intent,
+  constraints, invariants, or surprising decisions that are true of the current
+  code. Do not use comments to explain how the code differs from a previous
+  implementation, why an earlier approach was wrong, or to preserve review
+  history.
+- Keep the smallest reasonable API surface. Default to package-private types,
+  helpers, and state models unless there is a clear caller outside the package
+  in the current change.
+- Return concrete types from constructors. Accept interfaces at call sites
+  where substitution is useful, but do not return interfaces just to hide
+  implementation details.
+- Be suspicious of single-use pass-through helpers. If a helper only forwards
+  to one concrete constructor or API and adds no meaningful abstraction,
+  inline it.
+- Prefer names that describe the role of a value precisely, especially when
+  distinguishing desired state, observed state, configuration, and runtime state.
+- When code performs side effects outside process memory, add a short comment
+  for any non-obvious verification, locking, ordering, idempotency, or
+  ownership constraint.
+- Treat naming and visibility review comments as design feedback, not cosmetic
+  feedback. They usually indicate that the code is exposing too much or
+  describing itself imprecisely.
+- Keep internal reconciliation or transformation models local to the package
+  unless they are intentionally part of the package API.
+- Before finishing a change, do a quick pass over exports, constructor return
+  types, single-use abstractions, naming accuracy, and non-obvious invariants.
