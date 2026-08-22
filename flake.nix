@@ -122,6 +122,16 @@
     {
       formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
 
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          gamemode-waybar = pkgs.callPackage ./packages/gamemode-waybar/package.nix { };
+        }
+      );
+
       devShells = forAllSystems (system: {
         default =
           let

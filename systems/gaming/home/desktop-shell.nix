@@ -5,6 +5,7 @@ let
   swayosd = pkgs.swayosd.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [ ./swayosd-top-right.patch ];
   });
+  gamemodeWaybar = pkgs.callPackage ../../../packages/gamemode-waybar/package.nix { };
   swayosdStyle = pkgs.writeText "swayosd-style.css" ''
     window#osd {
       border: 1px solid rgba(108, 112, 134, 0.65);
@@ -396,7 +397,7 @@ in
       ];
       modules-right = [
         "privacy"
-        "gamemode"
+        "custom/gamemode"
         "systemd-failed-units"
         "idle_inhibitor"
         "custom/notifications"
@@ -445,12 +446,12 @@ in
         ];
       };
 
-      gamemode = {
-        format = "{glyph}";
-        glyph = "";
-        hide-not-running = true;
-        tooltip-format = "GameMode active for {count} client(s)";
-        use-icon = false;
+      "custom/gamemode" = {
+        exec = "${gamemodeWaybar}/bin/gamemode-waybar";
+        return-type = "json";
+        interval = 2;
+        hide-empty-text = true;
+        tooltip = true;
       };
 
       systemd-failed-units = {
@@ -539,7 +540,7 @@ in
       #workspaces,
       #custom-niri-stack,
       #privacy,
-      #gamemode,
+      #custom-gamemode,
       #systemd-failed-units,
       #idle_inhibitor,
       #custom-notifications,
@@ -592,7 +593,7 @@ in
 
       #privacy-item.location,
       #custom-notifications,
-      #gamemode.running {
+      #custom-gamemode.running {
         color: #cba6f7;
       }
 

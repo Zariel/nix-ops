@@ -1,0 +1,9 @@
+[package]
+name = "gamemode-waybar"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[profile.release]
+lto = "thin"
+strip = true
