@@ -345,6 +345,7 @@ in
         "custom/niri-stack"
       ];
       modules-right = [
+        "custom/notifications"
         "tray"
         "custom/keyboard"
         "pulseaudio"
@@ -370,6 +371,26 @@ in
       };
 
       tray.spacing = 8;
+
+      "custom/notifications" = {
+        exec = "${pkgs.swaynotificationcenter}/bin/swaync-client -swb";
+        return-type = "json";
+        escape = true;
+        format = "{icon} {0}";
+        format-icons = {
+          notification = "";
+          none = "";
+          dnd-notification = "";
+          dnd-none = "";
+          inhibited-notification = "";
+          inhibited-none = "";
+          dnd-inhibited-notification = "";
+          dnd-inhibited-none = "";
+        };
+        on-click = "${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
+        on-click-right = "${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
+        tooltip = false;
+      };
 
       "custom/keyboard" = {
         exec = "${keyboardBluetoothStatus}";
@@ -418,6 +439,7 @@ in
 
       #workspaces,
       #custom-niri-stack,
+      #custom-notifications,
       #tray,
       #custom-keyboard,
       #pulseaudio,
@@ -455,37 +477,116 @@ in
         color: #a6e3a1;
       }
 
+      #custom-notifications {
+        color: #cba6f7;
+      }
+
       #custom-power {
         color: #f38ba8;
       }
     '';
   };
 
-  services.mako = {
+  services.swaync = {
     enable = true;
     settings = {
-      font = "JetBrainsMono Nerd Font 10";
-      anchor = "top-right";
-      width = 360;
-      height = 160;
-      margin = "12";
-      padding = "10";
-      border-size = 2;
-      border-radius = 6;
-      icons = true;
-      markup = true;
-      default-timeout = 5000;
-      background-color = "#1e1e2e";
-      text-color = "#cdd6f4";
-      border-color = "#cba6f7";
-      progress-color = "over #89b4fa";
-
-      "urgency=low".border-color = "#45475a";
-      "urgency=high" = {
-        border-color = "#f38ba8";
-        default-timeout = 0;
+      positionX = "right";
+      positionY = "top";
+      layer = "overlay";
+      control-center-layer = "overlay";
+      layer-shell = true;
+      cssPriority = "user";
+      control-center-margin-top = 8;
+      control-center-margin-bottom = 8;
+      control-center-margin-right = 8;
+      control-center-margin-left = 8;
+      control-center-width = 420;
+      control-center-height = 640;
+      notification-window-width = 360;
+      notification-icon-size = 40;
+      notification-body-image-height = 120;
+      notification-body-image-width = 200;
+      notification-grouping = true;
+      relative-timestamps = true;
+      fit-to-screen = true;
+      keyboard-shortcuts = true;
+      transition-time = 150;
+      timeout = 5;
+      timeout-low = 3;
+      timeout-critical = 0;
+      hide-on-action = true;
+      hide-on-clear = true;
+      widgets = [
+        "title"
+        "dnd"
+        "notifications"
+      ];
+      widget-config = {
+        title = {
+          text = "Notifications";
+          clear-all-button = true;
+          button-text = "Clear all";
+        };
+        dnd.text = "Do Not Disturb";
+        notifications.vexpand = true;
       };
     };
+    style = lib.mkForce ''
+      :root {
+        --cc-bg: rgba(30, 30, 46, 0.96);
+        --noti-border-color: rgba(108, 112, 134, 0.55);
+        --noti-bg: 30, 30, 46;
+        --noti-bg-alpha: 0.9;
+        --noti-bg-darker: rgb(17, 17, 27);
+        --noti-bg-hover: rgb(49, 50, 68);
+        --noti-bg-focus: rgba(203, 166, 247, 0.18);
+        --noti-close-bg: rgb(69, 71, 90);
+        --noti-close-bg-hover: rgb(243, 139, 168);
+        --text-color: rgb(205, 214, 244);
+        --text-color-disabled: rgb(108, 112, 134);
+        --bg-selected: rgb(203, 166, 247);
+        --border-radius: 14px;
+        --notification-icon-size: 40px;
+        --notification-shadow: 0 8px 24px rgba(17, 17, 27, 0.45);
+        --font-size-body: 12px;
+        --font-size-summary: 13px;
+      }
+
+      * {
+        font-family: "Noto Sans", sans-serif;
+      }
+
+      .control-center {
+        border: 1px solid rgba(108, 112, 134, 0.65);
+        box-shadow: 0 12px 36px rgba(17, 17, 27, 0.5);
+      }
+
+      .notification-row .notification-background {
+        padding: 5px 8px;
+      }
+
+      .notification-row .notification-background .notification .notification-default-action {
+        padding: 6px;
+      }
+
+      .notification.critical {
+        border-color: #f38ba8;
+      }
+
+      .widget-title > button,
+      .widget-dnd > switch {
+        color: #cdd6f4;
+        background: #45475a;
+      }
+
+      .widget-title > button:hover {
+        background: #585b70;
+      }
+
+      .widget-dnd > switch:checked {
+        background: #cba6f7;
+      }
+    '';
   };
 
   programs.hyprlock = {
@@ -569,7 +670,7 @@ in
       PartOf = [ "graphical-session.target" ];
       After = [
         "graphical-session.target"
-        "mako.service"
+        "swaync.service"
       ];
     };
 
