@@ -48,7 +48,11 @@ let
   '';
 in
 {
-  xdg.autostart.enable = true;
+  xdg.autostart = {
+    enable = true;
+    entries = [ "${osConfig.programs.steam.package}/share/applications/steam.desktop" ];
+  };
+
   xdg.configFile."niri/config.kdl" = {
     force = true;
     text = ''
@@ -154,7 +158,7 @@ in
       binds {
           Mod+Shift+Slash { show-hotkey-overlay; }
           Mod+T { spawn "${pkgs.alacritty}/bin/alacritty"; }
-          Mod+Return { spawn "${pkgs.ghostty}/bin/ghostty"; }
+          Mod+Return { spawn "${pkgs.ghostty}/bin/ghostty" "+new-window"; }
           Mod+D { spawn "${pkgs.fuzzel}/bin/fuzzel"; }
           Mod+E { spawn "${pkgs.kdePackages.dolphin}/bin/dolphin"; }
           Mod+B { spawn "${pkgs.firefox}/bin/firefox"; }
@@ -239,13 +243,10 @@ in
     Unit = {
       Description = "1Password";
       After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
     };
     Service = {
-      ExecStart = "${pkgs.writeShellScript "1password-start" ''
-        # Wait for desktop session to fully initialize
-        sleep 2
-        exec ${pkgs._1password-gui}/bin/1password --silent
-      ''}";
+      ExecStart = "${pkgs._1password-gui}/bin/1password --silent";
       Restart = "on-failure";
       RestartSec = 5;
     };
@@ -256,10 +257,10 @@ in
     Unit = {
       Description = "Firefox autostart for Niri";
       After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
       ConditionEnvironment = "XDG_CURRENT_DESKTOP=niri";
     };
     Service = {
-      ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       ExecStart = "${pkgs.firefox}/bin/firefox";
     };
     Install.WantedBy = [ "graphical-session.target" ];

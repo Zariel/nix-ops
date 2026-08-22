@@ -31,6 +31,7 @@
 
   programs.ghostty = {
     enable = true;
+    systemd.enable = true;
     settings = {
       theme = "Catppuccin Mocha";
       shell-integration-features = [
@@ -38,4 +39,9 @@
       ];
     };
   };
+
+  xdg.configFile."systemd/user/app-com.mitchellh.ghostty.service.d/session.conf".text = ''
+    [Unit]
+    PartOf=graphical-session.target
+  '';
 }

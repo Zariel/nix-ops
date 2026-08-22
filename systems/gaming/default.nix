@@ -411,6 +411,9 @@ in
     polkitPolicyOwners = [ "chris" ];
   };
 
+  # Home Manager provides the session SSH agent.
+  services.gnome.gcr-ssh-agent.enable = false;
+
   xdg.portal = {
     enable = true;
     config = {
