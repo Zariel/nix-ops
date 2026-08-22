@@ -818,11 +818,11 @@ in
     };
     timeouts = [
       {
-        timeout = 300;
+        timeout = 900;
         command = lockCommand;
       }
       {
-        timeout = 600;
+        timeout = 1200;
         command = "${pkgs.niri}/bin/niri msg action power-off-monitors";
       }
     ];
