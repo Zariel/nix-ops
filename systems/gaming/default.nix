@@ -12,6 +12,7 @@
 let
   gamemodeSteamCompat = import ./pkgs/gamemode-steam-compat.nix { inherit pkgs; };
   protonGeBin10 = pkgs.callPackage ./pkgs/proton-ge-bin-10.nix { };
+  toml = pkgs.formats.toml { };
 in
 {
   imports = [
@@ -572,6 +573,26 @@ in
     font-awesome
     nerd-fonts.jetbrains-mono
   ];
+
+  # remove this once https://github.com/nix-community/home-manager/issues/9397
+  # and move back to it being managed by home-manager
+  environment.etc."codex/config.toml".source = toml.generate "codex-config.toml" {
+    sandbox_mode = "workspace-write";
+    sandbox_workspace_write = {
+      network_access = true;
+      writable_roots = [
+        "/home/chris/.cache/go-build"
+      ];
+    };
+    model_reasoning_effort = "high";
+    plan_mode_reasoning_effort = "xhigh";
+    model_reasoning_summary = "detailed";
+    personality = "pragmatic";
+    approvals_reviewer = "auto_review";
+
+    features.multi_agent = true;
+    features.apps = false;
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

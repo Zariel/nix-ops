@@ -86,25 +86,8 @@ in
         "codex-code-mode-host"
       ];
     });
-    settings = {
-      sandbox_mode = "workspace-write";
-      sandbox_workspace_write = {
-        network_access = true;
-        writable_roots = [
-          "${config.xdg.cacheHome}/go-build"
-        ];
-      };
-      model_reasoning_effort = "high";
-      plan_mode_reasoning_effort = "xhigh";
-      model_reasoning_summary = "detailed";
-      personality = "pragmatic";
-      approvals_reviewer = "auto_review";
-
-      features.multi_agent = true;
-      features.apps = false;
-      skills = {
-        draft-commit = ./apps/codex/skills/draft-commit.md;
-      };
+    skills = {
+      draft-commit = ./apps/codex/skills/draft-commit.md;
     };
     context = builtins.readFile ./apps/codex/context.md;
   };
