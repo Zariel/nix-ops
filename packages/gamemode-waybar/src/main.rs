@@ -1,12 +1,20 @@
-use std::env;
+use dbus::blocking::{stdintf::org_freedesktop_dbus::Properties, Connection};
+use dbus::message::MatchRule;
 use std::fs;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use std::time::Duration;
 
 const SERVICE: &str = "com.feralinteractive.GameMode";
 const ROOT: &str = "/com/feralinteractive/GameMode";
 const ROOT_INTERFACE: &str = "com.feralinteractive.GameMode";
 const GAME_INTERFACE: &str = "com.feralinteractive.GameMode.Game";
+const TIMEOUT: Duration = Duration::from_secs(1);
+const PROCESS_TIMEOUT: Duration = Duration::from_secs(60 * 60);
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Client {
@@ -16,8 +24,52 @@ struct Client {
 }
 
 fn main() {
-    let busctl = env::var_os("BUSCTL").unwrap_or_else(|| "busctl".into());
-    match clients(&busctl) {
+    if let Err(error) = run() {
+        emit(
+            "",
+            &format!("GameMode status unavailable\n{error}"),
+            "error",
+        );
+    }
+}
+
+fn run() -> Result<(), String> {
+    let connection = Connection::new_session()
+        .map_err(|error| format!("could not connect to the session bus: {error}"))?;
+    let changed = Arc::new(AtomicBool::new(false));
+
+    watch(&connection, "GameRegistered", Arc::clone(&changed))?;
+    watch(&connection, "GameUnregistered", Arc::clone(&changed))?;
+    refresh(&connection);
+
+    loop {
+        connection
+            .process(PROCESS_TIMEOUT)
+            .map_err(|error| format!("lost the session bus connection: {error}"))?;
+        if changed.swap(false, Ordering::Relaxed) {
+            refresh(&connection);
+        }
+    }
+}
+
+fn watch(
+    connection: &Connection,
+    member: &'static str,
+    changed: Arc<AtomicBool>,
+) -> Result<(), String> {
+    let mut rule = MatchRule::new_signal(ROOT_INTERFACE, member);
+    rule.path = Some(ROOT.into());
+    connection
+        .add_match(rule, move |_: (i32, dbus::Path<'static>), _, _| {
+            changed.store(true, Ordering::Relaxed);
+            true
+        })
+        .map(|_| ())
+        .map_err(|error| format!("could not subscribe to {member}: {error}"))
+}
+
+fn refresh(connection: &Connection) {
+    match clients(connection) {
         Ok(clients) => render(&clients),
         Err(error) => emit(
             "",
@@ -27,24 +79,20 @@ fn main() {
     }
 }
 
-fn clients(busctl: &std::ffi::OsStr) -> Result<Vec<Client>, String> {
-    let games = call(
-        busctl,
-        &["--user", "call", SERVICE, ROOT, ROOT_INTERFACE, "ListGames"],
-    )?;
-    let words = parse_words(&games)?;
+fn clients(connection: &Connection) -> Result<Vec<Client>, String> {
+    let proxy = connection.with_proxy(SERVICE, ROOT, TIMEOUT);
+    let (games,): (Vec<(i32, dbus::Path<'static>)>,) = proxy
+        .method_call(ROOT_INTERFACE, "ListGames", ())
+        .map_err(|error| format!("could not list GameMode clients: {error}"))?;
     let mut clients = Vec::new();
 
-    for pair in words.windows(2) {
-        let Ok(pid) = pair[0].parse::<i32>() else {
-            continue;
-        };
-        if !pair[1].starts_with("/com/feralinteractive/GameMode/Games/") {
+    for (pid, object) in games {
+        if !object.starts_with("/com/feralinteractive/GameMode/Games/") {
             continue;
         }
 
         let executable =
-            property(busctl, &pair[1], "Executable").unwrap_or_else(|_| format!("PID {pid}"));
+            property(connection, &object, "Executable").unwrap_or_else(|_| format!("PID {pid}"));
         clients.push(Client {
             name: resolve_name(pid, &executable),
             executable,
@@ -56,38 +104,15 @@ fn clients(busctl: &std::ffi::OsStr) -> Result<Vec<Client>, String> {
     Ok(clients)
 }
 
-fn property(busctl: &std::ffi::OsStr, object: &str, property: &str) -> Result<String, String> {
-    let output = call(
-        busctl,
-        &[
-            "--user",
-            "get-property",
-            SERVICE,
-            object,
-            GAME_INTERFACE,
-            property,
-        ],
-    )?;
-    parse_words(&output)?
-        .into_iter()
-        .nth(1)
-        .ok_or_else(|| format!("missing {property} value"))
-}
-
-fn call(busctl: &std::ffi::OsStr, args: &[&str]) -> Result<String, String> {
-    let output = Command::new(busctl)
-        .args(args)
-        .output()
-        .map_err(|error| format!("could not run busctl: {error}"))?;
-    if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr).trim().to_owned();
-        return Err(if error.is_empty() {
-            format!("busctl exited with {}", output.status)
-        } else {
-            error
-        });
-    }
-    String::from_utf8(output.stdout).map_err(|error| format!("invalid busctl output: {error}"))
+fn property(
+    connection: &Connection,
+    object: &dbus::Path<'_>,
+    property: &str,
+) -> Result<String, String> {
+    connection
+        .with_proxy(SERVICE, object, TIMEOUT)
+        .get(GAME_INTERFACE, property)
+        .map_err(|error| format!("could not read {property}: {error}"))
 }
 
 fn display_name(executable: &str) -> String {
@@ -152,7 +177,7 @@ fn steamapps_path(arguments: &[String]) -> Option<PathBuf> {
 }
 
 fn manifest_name(manifest: &str) -> Option<String> {
-    let words = parse_words(manifest).ok()?;
+    let words = parse_acf_words(manifest).ok()?;
     words
         .windows(2)
         .find(|pair| pair[0] == "name")
@@ -191,12 +216,16 @@ fn shorten(value: &str, limit: usize) -> String {
 }
 
 fn emit(text: &str, tooltip: &str, class: &str) {
-    println!(
+    let mut output = io::stdout().lock();
+    writeln!(
+        output,
         "{{\"text\":\"{}\",\"tooltip\":\"{}\",\"class\":\"{}\"}}",
         json(text),
         json(tooltip),
         json(class)
-    );
+    )
+    .expect("could not write Waybar output");
+    output.flush().expect("could not flush Waybar output");
 }
 
 fn json(value: &str) -> String {
@@ -217,7 +246,7 @@ fn json(value: &str) -> String {
     escaped
 }
 
-fn parse_words(input: &str) -> Result<Vec<String>, String> {
+fn parse_acf_words(input: &str) -> Result<Vec<String>, String> {
     let mut words = Vec::new();
     let mut word = String::new();
     let mut characters = input.chars().peekable();
@@ -234,7 +263,7 @@ fn parse_words(input: &str) -> Result<Vec<String>, String> {
                 active = true;
                 let escaped = characters
                     .next()
-                    .ok_or_else(|| "unfinished escape in busctl output".to_owned())?;
+                    .ok_or_else(|| "unfinished escape".to_owned())?;
                 match escaped {
                     'n' => word.push('\n'),
                     'r' => word.push('\r'),
@@ -269,7 +298,7 @@ fn parse_words(input: &str) -> Result<Vec<String>, String> {
     }
 
     if quoted {
-        return Err("unterminated quote in busctl output".to_owned());
+        return Err("unterminated quote".to_owned());
     }
     if active {
         words.push(word);
@@ -280,32 +309,6 @@ fn parse_words(input: &str) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parses_games() {
-        assert_eq!(
-            parse_words(
-                "a(io) 2 123 \"/com/feralinteractive/GameMode/Games/123\" 456 \"/com/feralinteractive/GameMode/Games/456\""
-            )
-            .unwrap(),
-            vec![
-                "a(io)",
-                "2",
-                "123",
-                "/com/feralinteractive/GameMode/Games/123",
-                "456",
-                "/com/feralinteractive/GameMode/Games/456",
-            ]
-        );
-    }
-
-    #[test]
-    fn parses_escaped_property() {
-        assert_eq!(
-            parse_words("s \"/games/My\\x20Game\"").unwrap(),
-            vec!["s", "/games/My Game"]
-        );
-    }
 
     #[test]
     fn uses_executable_basename() {

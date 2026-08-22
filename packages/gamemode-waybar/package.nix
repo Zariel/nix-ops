@@ -1,8 +1,8 @@
 {
+  dbus,
   lib,
-  makeWrapper,
+  pkg-config,
   rustPlatform,
-  systemd,
 }:
 
 rustPlatform.buildRustPackage {
@@ -12,12 +12,8 @@ rustPlatform.buildRustPackage {
   src = lib.cleanSource ./.;
   cargoLock.lockFile = ./Cargo.lock;
 
-  nativeBuildInputs = [ makeWrapper ];
-
-  postInstall = ''
-    wrapProgram "$out/bin/gamemode-waybar" \
-      --set BUSCTL ${lib.getExe' systemd "busctl"}
-  '';
+  nativeBuildInputs = [ pkg-config ];
+  buildInputs = [ dbus ];
 
   meta = {
     description = "Waybar status helper listing active GameMode clients";

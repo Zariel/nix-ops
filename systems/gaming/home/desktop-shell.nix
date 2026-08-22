@@ -449,7 +449,7 @@ in
       "custom/gamemode" = {
         exec = "${gamemodeWaybar}/bin/gamemode-waybar";
         return-type = "json";
-        interval = 2;
+        restart-interval = 5;
         hide-empty-text = true;
         tooltip = true;
       };
