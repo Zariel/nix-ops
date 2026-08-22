@@ -294,11 +294,25 @@ in
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  security.pam.services.hyprlock = { };
-  security.pam.yubico = {
-    enable = true;
-    id = "18293395";
+
+  security.pam.u2f = {
+    control = "sufficient";
+    settings = {
+      appid = "pam://gaming";
+      authfile = "/etc/u2f-mappings";
+      cue = true;
+      origin = "pam://gaming";
+      pinverification = 1;
+      userpresence = 1;
+    };
   };
+  security.pam.services = {
+    hyprlock.u2f.enable = true;
+    login.u2f.enable = true;
+    "polkit-1".u2f.enable = true;
+    sudo.u2f.enable = true;
+  };
+  environment.etc."u2f-mappings".source = ./u2f-mappings;
 
   services.fwupd.enable = true;
   services.pipewire = {
