@@ -37,6 +37,24 @@ in
 
         ecs.useAsClient = true;
 
+        log = {
+          level = "info";
+          format = "json";
+          timestamp = true;
+          privacy = false;
+        };
+
+        queryLog = {
+          type = "console";
+          fields = [
+            "clientIP"
+            "clientName"
+            "responseReason"
+            "question"
+            "duration"
+          ];
+        };
+
         prometheus = {
           enable = true;
           path = "/metrics";
