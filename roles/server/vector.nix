@@ -1,4 +1,14 @@
-{ ... }:
+{ config, ... }:
+let
+  metricsAddresses = {
+    dns-1 = "10.254.53.0";
+    dns-2 = "10.254.53.2";
+    dns-3 = "10.254.53.4";
+    nix-builder = "10.1.1.155";
+    matchbox = "10.1.1.20";
+  };
+  metricsAddress = metricsAddresses.${config.networking.hostName} or "127.0.0.1";
+in
 {
   services.vector = {
     enable = true;
@@ -90,6 +100,16 @@
                 }
               }
             }
+
+            del(._SYSTEMD_INVOCATION_ID)
+            del(._STREAM_ID)
+            del(._SYSTEMD_CGROUP)
+            del(._BOOT_ID)
+            del(._MACHINE_ID)
+            del(._CAP_EFFECTIVE)
+            del(.__MONOTONIC_TIMESTAMP)
+            del(.__REALTIME_TIMESTAMP)
+            del(.source_type)
           '';
         };
 
@@ -173,7 +193,7 @@
         internal_metrics_exporter = {
           type = "prometheus_exporter";
           inputs = [ "vector_internal_metrics" ];
-          address = "127.0.0.1:9598";
+          address = "${metricsAddress}:9598";
         };
       };
     };
