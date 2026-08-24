@@ -31,6 +31,15 @@ in
     gopls
   ];
 
+  programs.mpv = {
+    enable = true;
+    config = {
+      hwdec = "vulkan";
+      vo = "gpu-next";
+      gpu-api = "vulkan";
+    };
+  };
+
   programs.anomalyMods = {
     enable = false;
     baseDir = "${config.home.homeDirectory}/games/anomaly";

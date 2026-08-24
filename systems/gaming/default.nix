@@ -358,6 +358,7 @@ in
   # Install firefox.
   programs.firefox = {
     enable = true;
+    policies.HardwareAcceleration = true;
   };
 
   # Allow unfree packages
@@ -466,7 +467,6 @@ in
     fio
     cups-brother-mfcl2800dw
     nfs-utils
-    mesa
     libdrm
     libva-utils
     mpv

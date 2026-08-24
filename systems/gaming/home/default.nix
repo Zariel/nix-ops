@@ -58,6 +58,7 @@ in
     llmAgentPackages.beads-rust
     bd
     formatCommitMessage
+    gcc
   ];
 
   home.shellAliases = {
