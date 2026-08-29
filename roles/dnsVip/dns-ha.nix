@@ -29,14 +29,21 @@ let
     }
 
     check_dns_health() {
-      # Query dnsdist on localhost health check listener
-      # Uses gateway.cbannister.casa (local Bind zone) to test dnsdist -> bind chain
-      # This ensures health check passes when local DNS works, even if internet is down
-      if timeout "$DNS_TIMEOUT" ${pkgs.dnsutils}/bin/dig @127.0.0.1 -p "$HEALTH_CHECK_PORT" gateway.cbannister.casa +short +tries=1 > /dev/null 2>&1; then
-        return 0
-      else
-        return 1
-      fi
+      local bind_answer
+      local blocky_answer
+
+      # Validate the expected local-zone answer through dnsdist and Bind.
+      bind_answer=$(timeout "$DNS_TIMEOUT" ${pkgs.dnsutils}/bin/dig \
+        @127.0.0.1 -p "$HEALTH_CHECK_PORT" gateway.cbannister.casa A \
+        +short +tries=1 +time="$DNS_TIMEOUT" 2>/dev/null) || return 1
+      [ "$bind_answer" = "10.1.0.1" ] || return 1
+
+      # Validate Blocky's filtering engine directly with a deterministic local
+      # denylist entry. This remains healthy when external resolvers are down.
+      blocky_answer=$(timeout "$DNS_TIMEOUT" ${pkgs.dnsutils}/bin/dig \
+        @127.0.53.20 blocky-healthcheck.invalid A \
+        +short +tries=1 +time="$DNS_TIMEOUT" 2>/dev/null) || return 1
+      [ "$blocky_answer" = "0.0.0.0" ]
     }
 
     is_bird_advertising() {
@@ -193,7 +200,7 @@ in
         StandardError = "journal";
         SyslogIdentifier = "dns-healthcheck";
 
-        MemoryLimit = "50M";
+        MemoryMax = "50M";
         TasksMax = 10;
       };
 

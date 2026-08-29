@@ -40,8 +40,7 @@ newServer({
     mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
-    lazyHealthCheckMinSampleCount = 10,
-    useClientSubnet = true
+    lazyHealthCheckMinSampleCount = 10
 })
 
 -- K8s Bind
@@ -59,8 +58,7 @@ newServer({
     mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
-    lazyHealthCheckMinSampleCount = 10,
-    useClientSubnet = true
+    lazyHealthCheckMinSampleCount = 10
 })
 
 -- Local Blocky
@@ -74,7 +72,9 @@ newServer({
     lazyHealthCheckFailedInterval = 30,
     rise = 2,
     checkType = 'A',
-    checkName = 'cloudflare-dns.com.',
+    -- This name is in Blocky's local denylist, so the check validates the
+    -- filtering path without depending on Internet or upstream DNS health.
+    checkName = 'blocky-healthcheck.invalid.',
     mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
@@ -126,16 +126,25 @@ newServer({
     pool = "cloudflare"
 })
 
--- Enable caching for all upstream pools
-pc = newPacketCache(1000000, {
+-- Keep filtered and unfiltered answers in separate caches. Blocky's cache is
+-- ECS-aware because Blocky uses the client address for attribution and policy.
+blockyCache = newPacketCache(1000000, {
+    maxTTL = 86400,
+    minTTL = 0,
+    temporaryFailureTTL = 60,
+    staleTTL = 60,
+    dontAge = false,
+    parseECS = true
+})
+cloudflareCache = newPacketCache(1000000, {
     maxTTL = 86400,
     minTTL = 0,
     temporaryFailureTTL = 60,
     staleTTL = 60,
     dontAge = false
 })
-getPool("blocky"):setCache(pc)      -- Cache blocky queries (ad-blocking + hedged upstreams)
-getPool("cloudflare"):setCache(pc)  -- Cache direct Cloudflare queries
+getPool("blocky"):setCache(blockyCache)
+getPool("cloudflare"):setCache(cloudflareCache)
 
 -- addAction(AllRule(), LogAction("", false, false, true, false, false))
 -- addResponseAction(AllRule(), LogResponseAction("", false, true, false, false))
@@ -182,7 +191,7 @@ addAction(
 )
 addAction(
     AndRule({blockyClientRule, NotRule(PoolAvailableRule("blocky"))}),
-    PoolAction("cloudflare")
+    RCodeAction(DNSRCode.SERVFAIL)
 )
 
 -- iot

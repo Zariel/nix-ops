@@ -9,6 +9,12 @@ with lib;
 
 let
   cfg = config.services.dnsVip;
+  localDenylist = pkgs.writeText "blocky-local-denylist.txt" ''
+    blocky-healthcheck.invalid
+  '';
+  localAllowlist = pkgs.writeText "blocky-local-allowlist.txt" ''
+    www.thrivingautistic.org
+  '';
 in
 {
   config = mkIf cfg.enable {
@@ -69,13 +75,12 @@ in
 
           denylists = {
             ads = [
-              "https://raw.githubusercontent.com/Zariel/adlists/main/blocklist.txt"
+              (toString localDenylist)
               "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
               "https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt"
               "https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-domains.txt"
-              "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts;showintro=0"
+              "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext"
               "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.txt"
-              "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/popupads.txt"
               "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro.txt"
             ];
             fakenews = [
@@ -89,7 +94,7 @@ in
           allowlists.ads = [
             "https://raw.githubusercontent.com/Zariel/adlists/main/allowlist.txt"
             "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt"
-            "www.thrivingautistic.org"
+            (toString localAllowlist)
           ];
 
           clientGroupsBlock.default = [
