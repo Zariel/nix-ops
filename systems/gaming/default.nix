@@ -521,6 +521,10 @@ in
     qmk-udev-rules
   ];
   services.udev.extraRules = ''
+    # The TP-Link UB600's Realtek controller can stop responding to LE scan
+    # commands after runtime suspend, preventing bonded devices from reconnecting.
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="37ad", ATTR{idProduct}=="0600", TEST=="power/control", ATTR{power/control}="on"
+
     # Keep the power button as the primary wake source. The current logs show
     # S3/S4 wakes with broad PCIe/USB/RTC wake sources enabled.
     ACTION=="add", SUBSYSTEM=="pci", KERNEL=="0000:00:01.0", ATTR{power/wakeup}="disabled"
