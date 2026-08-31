@@ -68,6 +68,7 @@
         email = "c.bannister@gmail.com";
       };
       push.autoSetupRemote = true;
+      branch.sort = "-committerdate";
     };
   };
 
@@ -77,6 +78,11 @@
       user = {
         name = "Chris Bannister";
         email = "c.bannister@gmail.com";
+      };
+      remotes.upstream.auto-track-created-bookmarks = "exact:main";
+      remotes.origin = {
+        auto-track-bookmarks = "exact:main";
+        auto-track-created-bookmarks = "*";
       };
     };
   };
