@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  proton-cachy,
   ...
 }:
 
@@ -384,6 +385,7 @@ in
     extraCompatPackages = with pkgs; [
       proton-ge-bin
       protonGeBin10
+      proton-cachy.packages.${pkgs.stdenv.hostPlatform.system}.proton-cachyos-x86_64-v3
     ];
   };
 

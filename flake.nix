@@ -41,6 +41,11 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    proton-cachy = {
+      url = "github:Zariel/proton-cachy.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -55,6 +60,7 @@
       catppuccin,
       nixos-hardware,
       sops-nix,
+      proton-cachy,
       ...
     }:
     let
@@ -75,8 +81,10 @@
         {
           name,
           extraModules ? [ ],
+          specialArgs ? { },
         }:
         nixpkgs.lib.nixosSystem {
+          inherit specialArgs;
           system = "x86_64-linux";
           modules = [
             ./roles/base
@@ -173,6 +181,7 @@
         };
         gaming = mkSystem {
           name = "gaming";
+          specialArgs = { inherit proton-cachy; };
           extraModules = [
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
