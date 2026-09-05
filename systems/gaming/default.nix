@@ -484,7 +484,7 @@ in
     #  wget
     via
     vial
-    qmk
+    # qmk
     qmk-udev-rules
     xwayland-satellite
     (catppuccin-kde.override {
