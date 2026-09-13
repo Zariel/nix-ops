@@ -42,6 +42,33 @@ the chosen model predicted.
 At that point, do not merely simplify the implementation. Ask whether the
 chosen solution family is still correct.
 
+## Repeated failures and responsibility
+
+Repeated code suggests possible reuse. Repeated bugs suggest misplaced responsibility.
+
+Treat repeated failure modes as a design signal. When a test exposes a bug,
+identify the violated invariant or incorrect assumption in semantic terms,
+rather than describing it only in terms of the affected feature. Before
+considering the fix complete, search for other code that implements the same
+responsibility, state transition, lifecycle, or assumption.
+
+- If the same failure class has occurred in more than one implementation,
+  perform a repository-wide audit and reassess the abstraction boundary before
+  continuing with isolated fixes. Independent tests exposing the same failure
+  class are stronger evidence for a missing abstraction than similar-looking code.
+- If multiple implementations independently enforce the same retry, convergence,
+  persistence, ownership, transaction, or error-handling semantics, consider
+  moving those semantics behind a shared abstraction.
+- Prefer abstractions that make the invariant difficult or impossible for callers
+  to violate. Do not merely extract similar control flow into a generic helper
+  while leaving the important policy distributed among callers.
+- Use repeated failures to identify the abstraction. Do not abstract solely
+  because code has similar syntax; similar implementations may legitimately
+  have different contracts.
+- When introducing the abstraction, add focused tests for its shared contract.
+  Retain feature-level tests where they verify integration or reproduce an
+  important regression through public behavior.
+
 # Design Hygiene
 
 - Don't do more than is necessary.
