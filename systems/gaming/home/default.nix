@@ -89,6 +89,7 @@ in
     });
     skills = {
       draft-commit = ./apps/codex/skills/draft-commit.md;
+      technical-doc-writer = ./apps/codex/skills/technical-doc-writer;
     };
     context = builtins.readFile ./apps/codex/context.md;
   };

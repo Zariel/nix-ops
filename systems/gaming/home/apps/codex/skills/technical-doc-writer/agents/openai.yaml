@@ -1,0 +1,4 @@
+interface:
+  display_name: "Technical Document Writer"
+  short_description: "Write clear, consistent developer documentation"
+  default_prompt: "Use $technical-doc-writer to draft clear documentation for this technical feature."
