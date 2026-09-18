@@ -55,10 +55,10 @@ in
     rustup
     kubectl
     mkbrr
-    llmAgentPackages.beads-rust
     bd
     formatCommitMessage
     gcc
+    glow
   ];
 
   home.shellAliases = {
