@@ -716,6 +716,11 @@ in
     topMargin = 0.08;
   };
 
+  xdg.configFile."swayosd/config.toml".text = ''
+    [server]
+    duration = 3000
+  '';
+
   programs.hyprlock = {
     enable = true;
     settings = {
