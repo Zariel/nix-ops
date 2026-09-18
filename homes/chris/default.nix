@@ -65,7 +65,7 @@
     settings = {
       user = {
         name = "Chris Bannister";
-        email = "c.bannister@gmail.com";
+        email = "git@cbannister.uk";
       };
       push.autoSetupRemote = true;
       branch.sort = "-committerdate";
@@ -77,7 +77,7 @@
     settings = {
       user = {
         name = "Chris Bannister";
-        email = "c.bannister@gmail.com";
+        email = "git@cbannister.uk";
       };
       remotes.upstream.auto-track-created-bookmarks = "exact:main";
       remotes.origin = {
