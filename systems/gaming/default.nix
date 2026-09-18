@@ -597,6 +597,7 @@ in
 
     features.multi_agent = true;
     features.apps = false;
+    tui.whimsy = false;
   };
 
   # Some programs need SUID wrappers, can be configured further or are
