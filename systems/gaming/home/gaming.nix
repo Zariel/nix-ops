@@ -6,6 +6,15 @@
 }:
 let
   protonGeBin10 = pkgs.callPackage ../pkgs/proton-ge-bin-10.nix { };
+  goverlay = pkgs.goverlay.override {
+    lazarus-qt6 = pkgs.lazarus-qt6.overrideAttrs (oldAttrs: {
+      postInstall =
+        builtins.replaceStrings
+          [ "sed -re 's/-rpath [^ ]+//g'" ]
+          [ "sed -re 's/-rpath [^ ]+//g; s/ +/ /g; s/^ //; s/ $//'" ]
+          oldAttrs.postInstall;
+    });
+  };
 in
 {
   home.packages = with pkgs; [

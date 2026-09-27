@@ -17,6 +17,11 @@
       # inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -45,6 +50,7 @@
       home-manager,
       deploy-rs,
       llm-agents,
+      codex-cli-nix,
       treefmt-nix,
       catppuccin,
       sops-nix,
@@ -113,7 +119,7 @@
             ];
           };
           extraSpecialArgs = {
-            inherit llm-agents;
+            inherit codex-cli-nix llm-agents;
           };
         };
       };

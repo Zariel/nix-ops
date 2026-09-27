@@ -171,7 +171,7 @@ addAction({
 -- guest and iot straight to cloudflare
 addAction({"192.168.2.0/24", "10.1.3.0/24"}, PoolAction("cloudflare"))
 
-addAction('plex.cbannister.xyz', SpoofAction('10.45.0.20'))
+-- addAction('plex.cbannister.xyz', SpoofAction('10.45.0.20'))
 
 -- this will send this domain to the bind server
 addAction('unifi', PoolAction('bind'))

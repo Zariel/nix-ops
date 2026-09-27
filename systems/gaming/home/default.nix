@@ -1,5 +1,6 @@
 {
   pkgs,
+  codex-cli-nix,
   llm-agents,
   config,
   ...
@@ -81,12 +82,7 @@ in
 
   programs.codex = {
     enable = true;
-    package = llmAgentPackages.codex.overrideAttrs (old: {
-      cargoBuildFlags = old.cargoBuildFlags ++ [
-        "--package"
-        "codex-code-mode-host"
-      ];
-    });
+    package = codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
     skills = {
       draft-commit = ./apps/codex/skills/draft-commit.md;
       technical-doc-writer = ./apps/codex/skills/technical-doc-writer;
