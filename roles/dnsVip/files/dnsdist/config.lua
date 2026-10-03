@@ -55,7 +55,7 @@ newServer({
     rise = 2,
     maxCheckFailures = 3,
     checkType = 'SOA',
-    checkName = 'cbannister.xyz.',
+    checkName = @KUBERNETES_HEALTH_CHECK_DOMAIN@,
     mustResolve = true,
     lazyHealthCheckThreshold = 30,
     lazyHealthCheckSampleSize = 100,
@@ -166,7 +166,7 @@ addAction('plex.cbannister.xyz', SpoofAction('10.45.0.20'))
 
 -- this will send this domain to the bind server
 addAction('unifi', PoolAction('bind'))
-addAction('cbannister.xyz', PoolAction('k8s'))
+addAction(@KUBERNETES_DOMAINS@, PoolAction('k8s'))
 addAction('cbannister.casa', PoolAction('bind'))
 
 local blockySubnets = {

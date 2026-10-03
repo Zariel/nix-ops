@@ -12,7 +12,7 @@ Client Query (172.53.53.53)
 DNSdist (Load Balancer & Router)
     ↓
     ├─→ Local Bind (cbannister.casa, unifi, reverse DNS)
-    ├─→ K8s Bind (cbannister.xyz)
+    ├─→ K8s Bind (cbannister.xyz, rociobolanos.com)
     ├─→ Local Blocky (Ad-blocking)
     └─→ Cloudflare DNS over TLS (External fallback)
 ```
@@ -54,7 +54,7 @@ DNSdist performs "lazy" health checks on backends:
 1. Special blocks (resolver.arpa, icloud masks) → NXDOMAIN
 2. Domain-based routing:
    - `unifi`, `cbannister.casa` → Bind
-   - `cbannister.xyz` → K8s
+   - `cbannister.xyz`, `rociobolanos.com` → K8s
    - Reverse DNS zones → Bind
 3. Source IP routing:
    - Guest/Trusted/IoT/WireGuard networks → Prefer Blocky, then transparently fall back to Cloudflare if the Blocky pool is empty
@@ -216,6 +216,11 @@ systems/
 ├── dns2/default.nix                 # nodeIp: 10.254.53.2
 └── dns3/default.nix                 # nodeIp: 10.254.53.4
 ```
+
+Kubernetes authoritative zones are configured once in
+`services.dnsVip.kubernetesDomains` in `roles/dnsVip/default.nix`. DNSdist
+routes every listed zone to the shared Kubernetes backend and uses the first
+zone for its backend health check.
 
 ## Monitoring
 

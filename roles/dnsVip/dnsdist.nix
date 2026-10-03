@@ -9,7 +9,20 @@ with lib;
 
 let
   cfg = config.services.dnsVip;
-  dnsdistConfigPath = ./files/dnsdist/config.lua;
+  kubernetesDomains = generators.toLua { multiline = false; } cfg.kubernetesDomains;
+  kubernetesHealthCheckDomain = builtins.toJSON "${builtins.head cfg.kubernetesDomains}.";
+  dnsdistConfig =
+    builtins.replaceStrings
+      [
+        "@KUBERNETES_DOMAINS@"
+        "@KUBERNETES_HEALTH_CHECK_DOMAIN@"
+      ]
+      [
+        kubernetesDomains
+        kubernetesHealthCheckDomain
+      ]
+      (builtins.readFile ./files/dnsdist/config.lua);
+  dnsdistConfigPath = pkgs.writeText "dnsdist.conf" dnsdistConfig;
   dnsdistConfigCheck = pkgs.writeShellScript "dnsdist-configcheck" ''
     set -euo pipefail
     ${pkgs.lua}/bin/luac -p ${dnsdistConfigPath}
@@ -20,7 +33,7 @@ in
     services.dnsdist = {
       listenAddress = "172.53.53.53";
       listenPort = 53;
-      extraConfig = (builtins.readFile dnsdistConfigPath);
+      extraConfig = dnsdistConfig;
     };
 
     # Ensure dnsdist starts after the dnsvip interface is ready and after bind/blocky are running

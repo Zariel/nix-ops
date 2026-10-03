@@ -45,6 +45,18 @@ in
       default = 65001;
       description = "BGP autonomous system number used by the upstream peer";
     };
+
+    kubernetesDomains = mkOption {
+      type = types.nonEmptyListOf types.str;
+      default = [
+        "cbannister.xyz"
+        "rociobolanos.com"
+      ];
+      description = ''
+        DNS zones routed to the Kubernetes authoritative DNS server. The first
+        zone is also used to health-check the Kubernetes DNS backend.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
