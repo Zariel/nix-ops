@@ -5,7 +5,6 @@ let
     dns-2 = "10.254.53.2";
     dns-3 = "10.254.53.4";
     nix-builder = "10.1.1.155";
-    matchbox = "10.1.1.20";
   };
   metricsAddress = metricsAddresses.${config.networking.hostName} or "127.0.0.1";
 in

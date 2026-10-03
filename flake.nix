@@ -12,11 +12,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
       # inputs.nixpkgs.follows = "nixpkgs";
@@ -29,11 +24,6 @@
 
     catppuccin = {
       url = "github:catppuccin/nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nixos-hardware = {
-      url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -54,11 +44,9 @@
       nixpkgs,
       home-manager,
       deploy-rs,
-      disko,
       llm-agents,
       treefmt-nix,
       catppuccin,
-      nixos-hardware,
       sops-nix,
       proton-cachy,
       ...
@@ -172,13 +160,6 @@
           name = "builder";
           extraModules = [ ./roles/server ];
         };
-        matchbox = mkSystem {
-          name = "matchbox";
-          extraModules = [
-            ./roles/server
-            disko.nixosModules.disko
-          ];
-        };
         gaming = mkSystem {
           name = "gaming";
           specialArgs = { inherit proton-cachy; };
@@ -186,17 +167,6 @@
             catppuccin.nixosModules.catppuccin
             home-manager.nixosModules.home-manager
             (mkHome ./systems/gaming/home)
-          ];
-        };
-        thinliz = mkSystem {
-          name = "thinliz";
-          extraModules = [
-            disko.nixosModules.disko
-            catppuccin.nixosModules.catppuccin
-            home-manager.nixosModules.home-manager
-            nixos-hardware.nixosModules.common-cpu-intel
-            nixos-hardware.nixosModules.common-gpu-intel
-            (mkHome ./systems/thinliz/home.nix)
           ];
         };
       };
@@ -217,10 +187,6 @@
         dns3 = mkDeploy {
           name = "dns3";
           addr = "10.254.53.4";
-        };
-        thinliz = mkDeploy {
-          name = "thinliz";
-          addr = "10.1.2.102";
         };
       };
 
