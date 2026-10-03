@@ -32,6 +32,7 @@ rock                     IN  A  10.1.2.60
 ropiee                   IN  A  10.1.2.61
 dev                      IN  A  10.1.2.15
 gaming                   IN  A  10.1.2.16
+bc250                    IN  A  10.1.2.57
 
 k8s                      IN  A  10.45.0.100
 builder                  IN  A  10.1.1.155
