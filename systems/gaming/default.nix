@@ -521,6 +521,7 @@ in
     via
     vial
     qmk-udev-rules
+    platformio-core.udev
   ];
   services.udev.extraRules = ''
     # The TP-Link UB600's Realtek controller can stop responding to LE scan
