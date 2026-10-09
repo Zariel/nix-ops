@@ -166,6 +166,10 @@
           name = "builder";
           extraModules = [ ./roles/server ];
         };
+        ash = mkSystem {
+          name = "ash";
+          extraModules = [ ./roles/server ];
+        };
         gaming = mkSystem {
           name = "gaming";
           specialArgs = { inherit proton-cachy; };
@@ -178,6 +182,10 @@
       };
 
       deploy.nodes = {
+        ash = mkDeploy {
+          name = "ash";
+          addr = "ash.cbannister.casa";
+        };
         builder = mkDeploy {
           name = "builder";
           addr = "10.1.1.155";
