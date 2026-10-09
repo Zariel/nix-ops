@@ -1,4 +1,12 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  deploymentKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDoKtllnbPNdFQrL0LLsYx6c0mFKdmbmr4bBOIqBqO1c chris@gaming";
+in
 {
   networking.hostName = "ash";
   networking.useDHCP = false;
@@ -7,11 +15,17 @@
     enable = true;
     networks."10-lan" = {
       matchConfig.Name = "ens* enp* eth*";
-      networkConfig.DHCP = "ipv4";
+      address = [ "10.1.1.55/24" ];
+      gateway = [ "10.1.1.1" ];
+      dns = [ "172.53.53.53" ];
+      domains = [ "cbannister.casa" ];
     };
   };
 
   services.qemuGuest.enable = true;
+
+  users.users.chris.openssh.authorizedKeys.keys = lib.mkAfter [ deploymentKey ];
+  users.users.root.openssh.authorizedKeys.keys = lib.mkAfter [ deploymentKey ];
 
   nixpkgs.config.allowUnfree = true;
   hardware.graphics.enable = true;

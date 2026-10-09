@@ -12,6 +12,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
       # inputs.nixpkgs.follows = "nixpkgs";
@@ -49,6 +54,7 @@
       nixpkgs,
       home-manager,
       deploy-rs,
+      disko,
       llm-agents,
       codex-cli-nix,
       treefmt-nix,
@@ -145,6 +151,7 @@
           pkgs.mkShell {
             packages = [
               deploy-rs.packages.${system}.deploy-rs
+              pkgs.nixos-anywhere
             ];
           };
       });
@@ -168,7 +175,10 @@
         };
         ash = mkSystem {
           name = "ash";
-          extraModules = [ ./roles/server ];
+          extraModules = [
+            ./roles/server
+            disko.nixosModules.disko
+          ];
         };
         gaming = mkSystem {
           name = "gaming";
@@ -184,7 +194,7 @@
       deploy.nodes = {
         ash = mkDeploy {
           name = "ash";
-          addr = "ash.cbannister.casa";
+          addr = "10.1.1.55";
         };
         builder = mkDeploy {
           name = "builder";

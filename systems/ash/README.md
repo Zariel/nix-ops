@@ -9,26 +9,44 @@ roles, including SSH access for `chris` and Vector logging.
 1. Create an x86-64 VM with UEFI firmware and pass through the RTX A2000
    from the hypervisor. GPU passthrough must be configured on the hypervisor
    before the guest can use the card.
-2. Boot the NixOS installer, prepare the disks, and mount the root and EFI
-   partitions at `/mnt` and `/mnt/boot`. Run `nixos-generate-config --root /mnt`
-   and replace this directory's `hardware-configuration.nix` with the generated
-   `/mnt/etc/nixos/hardware-configuration.nix`. The scaffold assumes an ext4
-   root labelled `nixos` and a FAT EFI partition labelled `boot`.
-3. Configure a DHCP reservation and DNS record for `ash.cbannister.casa`,
-   or set a static address in `configuration.nix` and update the deployment
-   address in `flake.nix`. The network configuration matches `ens*`, `enp*`,
+2. Boot a Linux live environment with SSH access as root, or as a user with
+   passwordless sudo. A NixOS installer ISO avoids needing to kexec into an
+   installer. Identify the VM's disk with `lsblk -o NAME,SIZE,TYPE,MODEL,SERIAL`
+   and confirm that `/dev/sda` is the intended install disk.
+3. Reserve `10.1.1.55` outside the DHCP pool and add a DNS record for
+   `ash.cbannister.casa`. The guest uses `10.1.1.55/24`, gateway `10.1.1.1`,
+   and DNS server `172.53.53.53`. The deployment address is `10.1.1.55`.
+   The network configuration matches `ens*`, `enp*`,
    and `eth*` interfaces.
-4. From a copy of this repository on the installer, install the system:
+4. From this repository on the deployment machine, build the system before
+   starting installation:
 
    ```sh
-   nixos-install --flake .#ash
+   nix build .#nixosConfigurations.ash.config.system.build.toplevel --no-link
    ```
 
-   After boot, deploy subsequent changes from this repository with:
+5. Verify the target address and selected disk. **This command erases
+   `/dev/sda` on `10.1.1.55`.** Run the installation:
 
    ```sh
-   nix develop --command deploy .#ash
+   nix develop --command nixos-anywhere --flake .#ash --target-host root@10.1.1.55 -i ~/.ssh/id_ed25519
    ```
+
+Disko creates a GPT partition table, a 1 GiB FAT EFI partition at `/boot`, and
+an ext4 root partition using the remaining disk space. Disko owns the filesystem
+configuration; `hardware-configuration.nix` contains the guest's hardware scan,
+generated with `nixos-generate-config --show-hardware-config --no-filesystems`.
+The `chris@gaming` SSH key is authorized for `root` and `chris` after installation.
+
+After reboot, verify SSH access as `chris` and deploy subsequent changes with:
+
+```sh
+ssh chris@10.1.1.55
+nix develop --command deploy .#ash
+```
+
+See the [nixos-anywhere quickstart](https://nix-community.github.io/nixos-anywhere/quickstart.html)
+for installer prerequisites and options.
 
 Ollama listens on TCP port `11434` on all IPv4 interfaces. The server role
 disables the guest firewall, so place this VM on the intended trusted network.
