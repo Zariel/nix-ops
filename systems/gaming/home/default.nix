@@ -3,6 +3,8 @@
   codex-cli-nix,
   llm-agents,
   config,
+  lib,
+  osConfig,
   ...
 }:
 let
@@ -89,6 +91,39 @@ in
     };
     context = builtins.readFile ./apps/codex/context.md;
   };
+
+  systemd.user.services.codex-app-server = {
+    Unit = {
+      Description = "Codex background server";
+      X-Restart-Triggers = [ osConfig.environment.etc."codex/config.toml".source ];
+    };
+
+    Service = {
+      ExecStart = "${pkgs.lib.getExe config.programs.codex.package} app-server --listen unix://";
+      WorkingDirectory = home;
+      Environment = [ "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin" ];
+      Restart = "on-failure";
+      RestartSec = 2;
+      # Let the server shut down its workers before systemd kills remaining children.
+      KillMode = "mixed";
+      TimeoutStopSec = 75;
+    };
+
+    Install.WantedBy = [ "default.target" ];
+  };
+
+  # Global service switching can stop UWSM, so restart only a changed Codex unit.
+  home.activation.restartCodex = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
+    if ! ${pkgs.diffutils}/bin/cmp --quiet \
+      "''${oldGenPath:-}/home-files/.config/systemd/user/codex-app-server.service" \
+      "$newGenPath/home-files/.config/systemd/user/codex-app-server.service" 2>/dev/null \
+      && env XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
+        ${pkgs.systemd}/bin/systemctl --user is-active --quiet codex-app-server.service
+    then
+      run env XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
+        ${pkgs.systemd}/bin/systemctl --user try-restart codex-app-server.service
+    fi
+  '';
 
   programs.gh = {
     enable = true;

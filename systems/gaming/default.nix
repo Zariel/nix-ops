@@ -598,6 +598,8 @@ in
 
     features.multi_agent = true;
     features.apps = false;
+    # Clients attach to the systemd service without installing a separate daemon package.
+    features.daemon_auto_start = false;
     tui.whimsy = false;
   };
 
