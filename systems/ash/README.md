@@ -78,6 +78,38 @@ OLLAMA_HOST=http://ash.cbannister.casa:11434 ollama list
 
 For GPU compatibility details, see [Ollama hardware support](https://docs.ollama.com/gpu).
 
+## Proxmox GPU passthrough
+
+On `pve`, VM 107 uses Q35, OVMF, and `hostpci0: 0000:c1:00,pcie=1`.
+This passes through the A2000 and its HDMI audio function. Keep the emulated
+display for the console; Ollama does not require the A2000 to be the primary GPU.
+
+Bind both PCI IDs, `10de:2531` and `10de:228e`, to `vfio-pci` in the host's
+initramfs. Preserve other assigned-device IDs in the same module option, blacklist
+`nouveau`, and include `vfio`, `vfio_iommu_type1`, and `vfio_pci` in
+`/etc/initramfs-tools/modules`. Rebuild the initramfs and reboot the host before
+starting Ash. Verify with `lspci -nnk -s c1:00` that both functions use `vfio-pci`.
+This avoids detaching the host GPU driver when starting the VM.
+
+The host keeps persistent journal files with `SyncIntervalSec=1s`.
+Firmware-backed `pstore` captures supported kernel crash records; after a reboot,
+check `/sys/fs/pstore` and `/var/lib/systemd/pstore`.
+
+`pve-netconsole.service` sends kernel console messages from `10.1.1.31` on `bond0`
+to the Vector receiver at `10.45.0.2:6666/UDP`, through gateway MAC
+`08:c0:eb:0f:e4:30`. Update the service if the gateway MAC or management network
+changes. The receiver is managed in the `home-ops` Vector aggregator configuration
+and stores messages in VictoriaLogs. Query `host:pve source_stream:proxmox-netconsole`.
+Verify delivery with a harmless kernel message:
+
+```sh
+printf '<6>pve-netconsole-check\n' > /dev/kmsg
+```
+
+Netconsole bypasses host userspace and disk writes. Delivery still requires a
+working kernel, network path, and receiver; a sudden power loss or complete
+hardware lockup can prevent the final message from being emitted.
+
 ## Verify idle power management
 
 Ollama unloads models after one minute without requests, releasing the CUDA
