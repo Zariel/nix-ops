@@ -499,6 +499,7 @@ in
     go
     libvirt
     virt-manager
+    faugus-launcher
   ];
 
   virtualisation.libvirtd = {
