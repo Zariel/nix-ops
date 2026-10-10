@@ -81,6 +81,7 @@
     signKeyPaths = [ "/var/lib/secrets/harmonia-key" ];
     settings = {
       bind = "0.0.0.0:5000";
+      priority = 30; # Prefer the LAN cache over cache.nixos.org (40).
     };
   };
 
@@ -96,32 +97,35 @@
     serviceConfig = {
       Type = "oneshot";
       User = "chris";
+      StateDirectory = "cache-warmer";
       TimeoutSec = "4h"; # Allow time for first run downloads/builds
     };
     script = ''
-      set -e
+      set -euo pipefail
 
       REPO_DIR="/home/chris/nix-ops"
+      failed=0
 
       # Clone or update repository
       if [ ! -d "$REPO_DIR" ]; then
         echo "Cloning nix-ops repository..."
         git clone https://github.com/Zariel/nix-ops.git "$REPO_DIR" || {
-          echo "Failed to clone repository, skipping this run"
-          exit 0
+          echo "Failed to clone repository"
+          exit 1
         }
       else
         echo "Updating nix-ops repository..."
         cd "$REPO_DIR"
         git pull || {
           echo "Failed to pull updates, using existing version"
+          failed=1
         }
       fi
 
       cd "$REPO_DIR"
 
       # Build all system configurations
-      # Builds are stored in /nix/store and served by Harmonia
+      # Keep each system's last successful closure rooted for Harmonia.
       echo "Discovering nixosConfigurations from flake..."
       SYSTEMS=$(nix eval "$REPO_DIR#nixosConfigurations" --apply builtins.attrNames --json | jq -r '.[]')
 
@@ -136,11 +140,18 @@
       for system in $SYSTEMS; do
         echo "Building $system..."
         nix build ".#nixosConfigurations.$system.config.system.build.toplevel" \
+          --out-link "$STATE_DIRECTORY/result-$system" \
           --print-build-logs \
           --keep-going || {
           echo "Warning: Failed to build $system, continuing..."
+          failed=1
         }
       done
+
+      if [ "$failed" -ne 0 ]; then
+        echo "Cache warming incomplete - repository update or system builds failed"
+        exit 1
+      fi
 
       echo "Cache warming complete - all builds available via Harmonia at http://10.1.1.155:5000"
     '';
