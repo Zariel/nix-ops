@@ -37,6 +37,8 @@ bc250                    IN  A  10.1.2.57
 k8s                      IN  A  10.45.0.100
 builder                  IN  A  10.1.1.155
 
+printer                  IN  A  10.1.2.70
+
 dns1 IN A 10.254.53.0
 dns2 IN A 10.254.53.2
 dns3 IN A 10.254.53.4
