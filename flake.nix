@@ -157,6 +157,7 @@
       });
 
       nixosConfigurations = {
+        gateway = mkSystem { name = "gateway"; };
         dns1 = mkSystem {
           name = "dns1";
           extraModules = [ ./roles/server ];
@@ -192,6 +193,10 @@
       };
 
       deploy.nodes = {
+        gateway = mkDeploy {
+          name = "gateway";
+          addr = "10.1.0.1";
+        };
         ash = mkDeploy {
           name = "ash";
           addr = "10.1.1.55";
@@ -220,7 +225,10 @@
           formatting = treefmtEval.${system}.config.build.check self;
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") (
-          deploy-rs.lib.x86_64-linux.deployChecks self.deploy
+          (deploy-rs.lib.x86_64-linux.deployChecks self.deploy)
+          // {
+            gateway = import ./tests/gateway.nix { pkgs = import nixpkgs { inherit system; }; };
+          }
         )
       );
     };

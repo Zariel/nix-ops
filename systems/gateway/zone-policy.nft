@@ -1,0 +1,887 @@
+set address_group_K8S_NODES {
+  type ipv4_addr; flags interval;
+  elements = { 10.254.1.1, 10.254.1.3, 10.254.1.5 }
+}
+set address_group_STORAGE {
+  type ipv4_addr; flags interval;
+  elements = { 10.254.1.101 }
+}
+set address_group_airplay_sources {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.2.11, 10.1.2.14 }
+}
+set address_group_airplay_targets {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.3.14 }
+}
+set address_group_k8s_ingress {
+  type ipv4_addr; flags interval;
+  elements = { 10.45.0.10 }
+}
+set address_group_k8s_ingress_clients {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.3.16 }
+}
+set address_group_k8s_jellyfin {
+  type ipv4_addr; flags interval;
+  elements = { 10.45.0.21 }
+}
+set address_group_k8s_nodes {
+  type ipv4_addr; flags interval;
+  elements = { 10.254.1.1, 10.254.1.3, 10.254.1.5 }
+}
+set address_group_k8s_plex {
+  type ipv4_addr; flags interval;
+  elements = { 10.45.0.20 }
+}
+set address_group_nfs_clients {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.1.31, 10.1.1.41 }
+}
+set address_group_node_exporter_targets {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.2.54, 10.1.2.15, 10.1.1.31, 10.1.1.41, 10.1.0.1, 10.1.1.155, 10.1.2.16, 10.1.1.32, 10.1.0.100, 10.1.2.57 }
+}
+set address_group_plex_clients {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.3.16 }
+}
+set address_group_snmp_targets {
+  type ipv4_addr; flags interval;
+  elements = { 10.1.0.10, 10.1.0.31 }
+}
+set network_group_DNS_SERVERS {
+  type ipv4_addr; flags interval;
+  elements = { 10.254.53.0/24 }
+}
+set network_group_L3_SERVERS {
+  type ipv4_addr; flags interval;
+  elements = { 10.254.0.0/16 }
+}
+set network_group_LB_IPS {
+  type ipv4_addr; flags interval;
+  elements = { 10.45.0.0/24 }
+}
+set network_group_POD_NETS {
+  type ipv4_addr; flags interval;
+  elements = { 172.20.0.0/16 }
+}
+set network_group_k8s_pods {
+  type ipv4_addr; flags interval;
+  elements = { 10.42.0.0/16, 172.20.0.0/16 }
+}
+set port_group_KATL_PORTS {
+  type inet_service; flags interval;
+  elements = { 22, 8080, 9443 }
+}
+set port_group_apple_services_ports {
+  type inet_service; flags interval;
+  elements = { 3722, 6002, 7000, 30000-65535 }
+}
+set port_group_k8s_ingress {
+  type inet_service; flags interval;
+  elements = { 443 }
+}
+set port_group_nfs_ports {
+  type inet_service; flags interval;
+  elements = { 2049, 111 }
+}
+set port_group_roon_arc_ports {
+  type inet_service; flags interval;
+  elements = { 59453 }
+}
+# Native zone policy migrated from the live router (2026-10-26).
+# Common state handling is in firewall.nix. Each chain ends in an explicit verdict.
+chain ip_containers_guest {
+  counter drop
+}
+
+chain ip_containers_iot {
+  counter drop
+}
+
+chain ip_containers_lan {
+  counter drop
+}
+
+chain ip_containers_local {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS containers-local 40"
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS containers-local 50"
+  meta l4proto udp th dport 123 counter accept comment "VyOS containers-local 60"
+  counter drop
+}
+
+chain ip_containers_servers {
+  counter accept
+}
+
+chain ip_containers_transit {
+  meta l4proto tcp ip daddr @address_group_k8s_nodes th dport { 6443, 50000 } counter accept comment "VyOS containers-transit 100"
+  meta l4proto { tcp, udp } ip daddr 10.45.0.55 th dport 53 counter accept comment "VyOS containers-transit 110"
+  counter drop
+}
+
+chain ip_containers_trusted {
+  counter drop
+}
+
+chain ip_containers_wan {
+  counter accept
+}
+
+chain ip_guest_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS guest-containers 40"
+  counter drop
+}
+
+chain ip_guest_iot {
+  counter drop
+}
+
+chain ip_guest_lan {
+  counter drop
+}
+
+chain ip_guest_local {
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS guest-local 50"
+  counter drop
+}
+
+chain ip_guest_servers {
+  counter drop
+}
+
+chain ip_guest_transit {
+  meta l4proto { tcp, udp } ip daddr 172.53.53.53 th dport 53 counter accept comment "VyOS guest-transit 10"
+  counter drop
+}
+
+chain ip_guest_trusted {
+  counter drop
+}
+
+chain ip_guest_wan {
+  counter accept
+}
+
+chain ip_iot_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS iot-containers 40"
+  counter accept
+}
+
+chain ip_iot_guest {
+  counter drop
+}
+
+chain ip_iot_lan {
+  counter drop
+}
+
+chain ip_iot_local {
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS iot-local 50"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 123 counter accept comment "VyOS iot-local 60"
+  meta l4proto igmp counter accept comment "VyOS iot-local 100"
+  meta l4proto udp ip daddr 224.0.0.251 th dport 5353 counter accept comment "VyOS iot-local 110"
+  counter drop
+}
+
+chain ip_iot_servers {
+  meta l4proto tcp ip daddr @address_group_k8s_plex th dport 32400 ip saddr @address_group_plex_clients counter accept comment "VyOS iot-servers 50"
+  meta l4proto { tcp, udp } ip daddr @address_group_k8s_jellyfin ip saddr @address_group_plex_clients counter accept comment "VyOS iot-servers 60"
+  meta l4proto tcp ip daddr @address_group_k8s_ingress th dport @port_group_k8s_ingress ip saddr @address_group_k8s_ingress_clients counter accept comment "VyOS iot-servers 70"
+  counter drop
+}
+
+chain ip_iot_transit {
+  meta l4proto { tcp, udp } ip daddr 172.53.53.53 th dport 53 counter accept comment "VyOS iot-transit 10"
+  meta l4proto tcp ip daddr @address_group_k8s_plex th dport 32400 ip saddr @address_group_plex_clients counter accept comment "VyOS iot-transit 100"
+  counter drop
+}
+
+chain ip_iot_trusted {
+  meta l4proto { tcp, udp } ip daddr @address_group_airplay_sources th dport @port_group_apple_services_ports ip saddr @address_group_airplay_targets counter accept comment "VyOS iot-trusted 200"
+  counter drop
+}
+
+chain ip_iot_wan {
+  counter accept
+}
+
+chain ip_lan_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS lan-containers 40"
+  counter accept
+}
+
+chain ip_lan_guest {
+  counter drop
+}
+
+chain ip_lan_iot {
+  counter drop
+}
+
+chain ip_lan_local {
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS lan-local 50"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 123 counter accept comment "VyOS lan-local 60"
+  meta l4proto udp th dport 69 counter accept comment "VyOS lan-local 80"
+  meta l4proto tcp th dport 9100 ip saddr @network_group_k8s_pods counter accept comment "VyOS lan-local 100"
+  meta l4proto tcp th dport 22 counter accept comment "VyOS lan-local 400"
+  counter drop
+}
+
+chain ip_lan_servers {
+  meta l4proto { tcp, udp } th dport { 161, 162 } counter accept comment "VyOS lan-servers 100"
+  meta l4proto { tcp, udp } ip daddr 10.1.1.51 th dport 5000 ip saddr 10.1.0.100 counter accept comment "VyOS lan-servers 110"
+  counter drop
+}
+
+chain ip_lan_transit {
+  meta l4proto { tcp, udp } ip daddr 172.53.53.53 th dport 53 counter accept comment "VyOS lan-transit 10"
+  counter drop
+}
+
+chain ip_lan_trusted {
+  meta l4proto udp ip daddr 10.1.2.14 th dport 6343 counter accept comment "VyOS lan-trusted 100"
+  counter drop
+}
+
+chain ip_lan_wan {
+  counter accept
+}
+
+chain ip_local_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS local-containers 40"
+  counter accept
+}
+
+chain ip_local_guest {
+  counter drop
+}
+
+chain ip_local_iot {
+  meta l4proto igmp counter accept comment "VyOS local-iot 100"
+  meta l4proto udp th dport 5353 th sport 5353 counter accept comment "VyOS local-iot 110"
+  counter drop
+}
+
+chain ip_local_lan {
+  counter drop
+}
+
+chain ip_local_servers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS local-servers 40"
+  meta l4proto tcp th dport 179 counter accept comment "VyOS local-servers 70"
+  meta l4proto udp counter accept comment "VyOS local-servers 80"
+  meta l4proto tcp ip daddr 10.45.0.2 th dport 6001 counter accept comment "VyOS local-servers 200"
+  meta l4proto tcp ip daddr @address_group_k8s_nodes th dport 6443 counter accept comment "VyOS local-servers 210"
+  counter drop
+}
+
+chain ip_local_transit {
+  meta l4proto 89 counter accept comment "VyOS local-transit 10"
+  meta l4proto tcp ip daddr 10.254.0.1 th dport 179 ip saddr 10.254.0.0 counter accept comment "VyOS local-transit 15"
+  meta l4proto icmp counter accept comment "VyOS local-transit 20"
+  counter drop
+}
+
+chain ip_local_trusted {
+  meta l4proto icmp counter accept comment "VyOS local-trusted 20"
+  meta l4proto igmp counter accept comment "VyOS local-trusted 100"
+  meta l4proto udp th dport 5353 th sport 5353 counter accept comment "VyOS local-trusted 110"
+  meta l4proto udp th sport 51820 counter accept comment "VyOS local-trusted 400"
+  counter drop
+}
+
+chain ip_local_wan {
+  counter accept
+}
+
+chain ip_servers_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS servers-containers 40"
+  meta l4proto tcp ip saddr @network_group_k8s_pods counter accept comment "VyOS servers-containers 100"
+  meta l4proto tcp ip saddr @address_group_k8s_nodes counter accept comment "VyOS servers-containers 101"
+  counter accept
+}
+
+chain ip_servers_guest {
+  counter drop
+}
+
+chain ip_servers_iot {
+  counter drop
+}
+
+chain ip_servers_lan {
+  meta l4proto udp th dport 161 counter accept comment "VyOS servers-lan 100"
+  counter drop
+}
+
+chain ip_servers_local {
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS servers-local 50"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 123 counter accept comment "VyOS servers-local 60"
+  meta l4proto tcp th dport 179 counter accept comment "VyOS servers-local 70"
+  meta l4proto udp th dport 69 counter accept comment "VyOS servers-local 80"
+  meta l4proto tcp th dport 9100 ip saddr @network_group_k8s_pods counter accept comment "VyOS servers-local 100"
+  meta l4proto tcp th dport 9100 ip saddr @address_group_k8s_nodes counter accept comment "VyOS servers-local 101"
+  meta l4proto tcp th dport 9798 ip saddr @network_group_k8s_pods counter accept comment "VyOS servers-local 110"
+  counter drop
+}
+
+chain ip_servers_transit {
+  meta l4proto { tcp, udp } ip daddr 172.53.53.53 th dport 53 counter accept comment "VyOS servers-transit 10"
+  meta l4proto { tcp, udp } ip daddr @address_group_STORAGE th dport @port_group_nfs_ports ip saddr @address_group_nfs_clients counter accept comment "VyOS servers-transit 130"
+  meta l4proto { tcp, udp } ip daddr @network_group_LB_IPS counter accept comment "VyOS servers-transit 200"
+  counter drop
+}
+
+chain ip_servers_trusted {
+  meta l4proto tcp ip daddr 10.1.2.54 th dport 9100 ip saddr @network_group_k8s_pods counter accept comment "VyOS servers-trusted 100"
+  meta l4proto tcp ip daddr @address_group_node_exporter_targets th dport 9100 ip saddr @address_group_k8s_nodes counter accept comment "VyOS servers-trusted 101"
+  counter drop
+}
+
+chain ip_servers_wan {
+  counter accept
+}
+
+chain ip_transit_containers {
+  meta l4proto { tcp, udp } ip daddr 10.5.0.4 th dport 53 counter accept comment "VyOS transit-containers 10"
+  meta l4proto tcp ip daddr 10.5.0.2 th dport { 6443, 50000 } ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-containers 100"
+  meta l4proto tcp ip daddr 10.5.0.4 th dport 8083 ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-containers 110"
+  meta l4proto tcp ip daddr 10.5.0.7 th dport 4000 ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-containers 120"
+  counter drop
+}
+
+chain ip_transit_guest {
+  counter drop
+}
+
+chain ip_transit_iot {
+  meta l4proto icmp counter accept comment "VyOS transit-iot 20"
+  counter drop
+}
+
+chain ip_transit_lan {
+  meta l4proto icmp counter accept comment "VyOS transit-lan 20"
+  meta l4proto udp ip daddr @address_group_snmp_targets th dport { 161, 162 } ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-lan 100"
+  meta l4proto tcp ip daddr @address_group_node_exporter_targets th dport 9100 ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-lan 101"
+  counter drop
+}
+
+chain ip_transit_local {
+  meta l4proto 89 counter accept comment "VyOS transit-local 10"
+  meta l4proto tcp ip daddr 10.254.0.0 th dport 179 ip saddr 10.254.0.1 counter accept comment "VyOS transit-local 15"
+  meta l4proto icmp counter accept comment "VyOS transit-local 20"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 123 counter accept comment "VyOS transit-local 30"
+  meta l4proto tcp ip daddr @address_group_node_exporter_targets th dport 9100 ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-local 110"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 69 ip saddr 10.254.0.0/24 counter accept comment "VyOS transit-local 120"
+  counter drop
+}
+
+chain ip_transit_servers {
+  meta l4proto icmp counter accept comment "VyOS transit-servers 20"
+  meta l4proto tcp ip daddr @address_group_node_exporter_targets th dport { 9100, 9633, 9290 } ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-servers 100"
+  meta l4proto tcp ip daddr 10.1.1.155 th dport 5000 counter accept comment "VyOS transit-servers 110"
+  meta l4proto tcp ip daddr 10.1.1.55 th dport 11434 ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-servers 200"
+  counter drop
+}
+
+chain ip_transit_trusted {
+  meta l4proto icmp counter accept comment "VyOS transit-trusted 20"
+  meta l4proto tcp ip daddr @address_group_node_exporter_targets th dport { 9100, 9633 } ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-trusted 100"
+  counter drop
+}
+
+chain ip_transit_wan {
+  ip daddr @geoip_cn_ru counter drop comment "VyOS transit-wan 50"
+  ip saddr @address_group_k8s_nodes counter accept comment "VyOS transit-wan 100"
+  meta l4proto tcp th dport { 80, 443 } ip saddr @address_group_STORAGE counter accept comment "VyOS transit-wan 110"
+  ip saddr @network_group_POD_NETS counter accept comment "VyOS transit-wan 120"
+  ip saddr @network_group_DNS_SERVERS counter accept comment "VyOS transit-wan 200"
+  counter drop
+}
+
+chain ip_trusted_containers {
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS trusted-containers 40"
+  counter accept
+}
+
+chain ip_trusted_guest {
+  counter drop
+}
+
+chain ip_trusted_iot {
+  meta l4proto icmp counter accept comment "VyOS trusted-iot 10"
+  counter accept
+}
+
+chain ip_trusted_lan {
+  counter accept
+}
+
+chain ip_trusted_local {
+  meta l4proto udp th dport { 67, 68 } th sport { 67, 68 } counter accept comment "VyOS trusted-local 50"
+  meta l4proto udp ip daddr 10.254.254.1 th dport 123 counter accept comment "VyOS trusted-local 60"
+  meta l4proto udp th dport 69 counter accept comment "VyOS trusted-local 80"
+  meta l4proto icmp counter accept comment "VyOS trusted-local 90"
+  meta l4proto igmp counter accept comment "VyOS trusted-local 100"
+  meta l4proto udp ip daddr 224.0.0.251 th dport 5353 counter accept comment "VyOS trusted-local 110"
+  meta l4proto udp ip daddr 255.255.255.255 th dport 9 counter accept comment "VyOS trusted-local 111"
+  meta l4proto tcp th dport 22 counter accept comment "VyOS trusted-local 400"
+  meta l4proto tcp th dport 8443 counter accept comment "VyOS trusted-local 410"
+  meta l4proto udp th dport 51820 counter accept comment "VyOS trusted-local 420"
+  meta l4proto tcp th dport 5201 counter accept comment "VyOS trusted-local 500"
+  counter drop
+}
+
+chain ip_trusted_servers {
+  counter accept
+}
+
+chain ip_trusted_transit {
+  meta l4proto icmp counter accept comment "VyOS trusted-transit 15"
+  meta l4proto { tcp, udp } ip daddr 172.53.53.53 th dport 53 counter accept comment "VyOS trusted-transit 20"
+  ip daddr @network_group_L3_SERVERS counter accept comment "VyOS trusted-transit 100"
+  ip daddr @network_group_LB_IPS counter accept comment "VyOS trusted-transit 110"
+  ip daddr @network_group_DNS_SERVERS counter accept comment "VyOS trusted-transit 120"
+  meta l4proto tcp ip daddr @address_group_K8S_NODES th dport @port_group_KATL_PORTS counter accept comment "VyOS trusted-transit 200"
+  counter drop
+}
+
+chain ip_trusted_wan {
+  counter accept
+}
+
+chain ip_wan_containers {
+  counter drop
+}
+
+chain ip_wan_guest {
+  counter drop
+}
+
+chain ip_wan_iot {
+  counter drop
+}
+
+chain ip_wan_lan {
+  counter drop
+}
+
+chain ip_wan_local {
+  meta l4proto udp th dport 51820 counter accept comment "VyOS wan-local 100"
+  counter drop
+}
+
+chain ip_wan_servers {
+  meta l4proto { tcp, udp } ip daddr 10.45.0.24 th dport 50413 counter accept comment "VyOS wan-servers 100"
+  counter drop
+}
+
+chain ip_wan_transit {
+  ip saddr @geoip_cn_ru counter drop comment "VyOS wan-transit 50"
+  meta l4proto tcp ip daddr 10.45.0.24 th dport 50413 counter accept comment "VyOS wan-transit 100"
+  counter drop
+}
+
+chain ip_wan_trusted {
+  meta l4proto tcp ip daddr 10.1.2.60 th dport @port_group_roon_arc_ports counter accept comment "VyOS wan-trusted 100"
+  counter drop
+}
+
+chain ip6_containers_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-guest 20"
+  counter drop
+}
+
+chain ip6_containers_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-iot 20"
+  counter drop
+}
+
+chain ip6_containers_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-lan 20"
+  counter drop
+}
+
+chain ip6_containers_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-local 20"
+  counter drop
+}
+
+chain ip6_containers_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-servers 20"
+  counter drop
+}
+
+chain ip6_containers_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-transit 20"
+  counter drop
+}
+
+chain ip6_containers_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS containers-trusted 20"
+  counter drop
+}
+
+chain ip6_containers_wan {
+  counter drop
+}
+
+chain ip6_guest_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-containers 20"
+  counter drop
+}
+
+chain ip6_guest_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-iot 20"
+  counter drop
+}
+
+chain ip6_guest_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-lan 20"
+  counter drop
+}
+
+chain ip6_guest_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-local 20"
+  counter drop
+}
+
+chain ip6_guest_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-servers 20"
+  counter drop
+}
+
+chain ip6_guest_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-transit 20"
+  counter drop
+}
+
+chain ip6_guest_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS guest-trusted 20"
+  counter drop
+}
+
+chain ip6_guest_wan {
+  counter drop
+}
+
+chain ip6_iot_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-containers 20"
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS iot-containers 40"
+  counter accept
+}
+
+chain ip6_iot_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-guest 20"
+  counter drop
+}
+
+chain ip6_iot_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-lan 20"
+  counter drop
+}
+
+chain ip6_iot_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-local 20"
+  meta l4proto udp th dport 5353 th sport 5353 counter accept comment "VyOS iot-local 110"
+  counter drop
+}
+
+chain ip6_iot_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-servers 20"
+  counter drop
+}
+
+chain ip6_iot_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-transit 20"
+  meta l4proto { tcp, udp } ip6 daddr fd74:f571:d3bd:53::53 th dport { 53, 853 } counter accept comment "VyOS iot-transit 53"
+  counter drop
+}
+
+chain ip6_iot_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS iot-trusted 20"
+  counter drop
+}
+
+chain ip6_iot_wan {
+  counter accept
+}
+
+chain ip6_lan_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-containers 20"
+  counter drop
+}
+
+chain ip6_lan_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-guest 20"
+  counter drop
+}
+
+chain ip6_lan_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-iot 20"
+  counter drop
+}
+
+chain ip6_lan_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-local 20"
+  counter drop
+}
+
+chain ip6_lan_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-servers 20"
+  counter drop
+}
+
+chain ip6_lan_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-transit 20"
+  counter drop
+}
+
+chain ip6_lan_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS lan-trusted 20"
+  counter drop
+}
+
+chain ip6_lan_wan {
+  counter drop
+}
+
+chain ip6_local_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-containers 20"
+  counter drop
+}
+
+chain ip6_local_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-guest 20"
+  counter drop
+}
+
+chain ip6_local_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-iot 20"
+  meta l4proto udp th dport 5353 th sport 5353 counter accept comment "VyOS local-iot 110"
+  counter drop
+}
+
+chain ip6_local_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-lan 20"
+  counter drop
+}
+
+chain ip6_local_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-servers 20"
+  counter drop
+}
+
+chain ip6_local_transit {
+  meta l4proto 89 counter accept comment "VyOS local-transit 10"
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-transit 20"
+  counter drop
+}
+
+chain ip6_local_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS local-trusted 20"
+  meta l4proto udp th dport 546 th sport 547 counter accept comment "VyOS local-trusted 30"
+  meta l4proto udp th dport 5353 counter accept comment "VyOS local-trusted 110"
+  counter drop
+}
+
+chain ip6_local_wan {
+  counter accept
+}
+
+chain ip6_servers_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-containers 20"
+  counter drop
+}
+
+chain ip6_servers_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-guest 20"
+  counter drop
+}
+
+chain ip6_servers_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-iot 20"
+  counter drop
+}
+
+chain ip6_servers_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-lan 20"
+  counter drop
+}
+
+chain ip6_servers_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-local 20"
+  counter drop
+}
+
+chain ip6_servers_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-transit 20"
+  counter drop
+}
+
+chain ip6_servers_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS servers-trusted 20"
+  counter drop
+}
+
+chain ip6_servers_wan {
+  counter drop
+}
+
+chain ip6_transit_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-containers 20"
+  counter drop
+}
+
+chain ip6_transit_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-guest 20"
+  counter drop
+}
+
+chain ip6_transit_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-iot 20"
+  counter drop
+}
+
+chain ip6_transit_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-lan 20"
+  counter drop
+}
+
+chain ip6_transit_local {
+  meta l4proto 89 counter accept comment "VyOS transit-local 10"
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-local 20"
+  counter accept
+}
+
+chain ip6_transit_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-servers 20"
+  counter drop
+}
+
+chain ip6_transit_trusted {
+  meta l4proto ipv6-icmp counter accept comment "VyOS transit-trusted 20"
+  counter drop
+}
+
+chain ip6_transit_wan {
+  counter drop
+}
+
+chain ip6_trusted_containers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-containers 20"
+  meta l4proto { tcp, udp } th dport { 53, 853 } counter accept comment "VyOS trusted-containers 40"
+  counter accept
+}
+
+chain ip6_trusted_guest {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-guest 20"
+  counter drop
+}
+
+chain ip6_trusted_iot {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-iot 20"
+  ip6 daddr fd42:dfb5:24e4:1::/64 counter accept comment "VyOS trusted-iot 100"
+  counter drop
+}
+
+chain ip6_trusted_lan {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-lan 20"
+  counter drop
+}
+
+chain ip6_trusted_local {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-local 20"
+  meta l4proto udp th dport 5353 th sport 5353 counter accept comment "VyOS trusted-local 110"
+  meta l4proto tcp th dport 22 counter accept comment "VyOS trusted-local 400"
+  counter drop
+}
+
+chain ip6_trusted_servers {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-servers 20"
+  counter drop
+}
+
+chain ip6_trusted_transit {
+  meta l4proto ipv6-icmp counter accept comment "VyOS trusted-transit 20"
+  meta l4proto { tcp, udp } ip6 daddr fd74:f571:d3bd:53::53 th dport { 53, 853 } counter accept comment "VyOS trusted-transit 53"
+  counter drop
+}
+
+chain ip6_trusted_wan {
+  counter accept
+}
+
+chain ip6_wan_containers {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-containers 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-containers 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-containers 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-containers 23"
+  counter drop
+}
+
+chain ip6_wan_guest {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-guest 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-guest 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-guest 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-guest 23"
+  counter drop
+}
+
+chain ip6_wan_iot {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-iot 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-iot 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-iot 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-iot 23"
+  meta l4proto { tcp, udp } ip6 daddr & ::ffff:ffff:ffff:ffff == ::5679:68e4:9fe0:46e4 th dport 3074 counter accept comment "VyOS wan-iot 100"
+  meta l4proto udp ip6 daddr & ::ffff:ffff:ffff:ffff == ::5679:68e4:9fe0:46e4 th dport { 88, 500, 3544, 4500 } counter accept comment "VyOS wan-iot 101"
+  counter drop
+}
+
+chain ip6_wan_lan {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-lan 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-lan 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-lan 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-lan 23"
+  counter drop
+}
+
+chain ip6_wan_local {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-local 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-local 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-local 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-local 23"
+  meta l4proto ipv6-icmp icmpv6 type nd-router-advert counter accept comment "VyOS wan-local 24"
+  meta l4proto ipv6-icmp icmpv6 type nd-router-solicit counter accept comment "VyOS wan-local 25"
+  meta l4proto ipv6-icmp icmpv6 type nd-neighbor-solicit counter accept comment "VyOS wan-local 26"
+  meta l4proto ipv6-icmp icmpv6 type nd-neighbor-advert counter accept comment "VyOS wan-local 27"
+  meta l4proto udp th dport 546 th sport 547 counter accept comment "VyOS wan-local 30"
+  counter drop
+}
+
+chain ip6_wan_servers {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-servers 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-servers 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-servers 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-servers 23"
+  counter drop
+}
+
+chain ip6_wan_transit {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-transit 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-transit 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-transit 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-transit 23"
+  counter drop
+}
+
+chain ip6_wan_trusted {
+  meta l4proto ipv6-icmp icmpv6 type destination-unreachable counter accept comment "VyOS wan-trusted 20"
+  meta l4proto ipv6-icmp icmpv6 type packet-too-big counter accept comment "VyOS wan-trusted 21"
+  meta l4proto ipv6-icmp icmpv6 type time-exceeded counter accept comment "VyOS wan-trusted 22"
+  meta l4proto ipv6-icmp icmpv6 type parameter-problem counter accept comment "VyOS wan-trusted 23"
+  meta l4proto tcp ip6 daddr & ::ffff:ffff:ffff:ffff == ::7c7d:c6ff:fec7:26ac th dport @port_group_roon_arc_ports counter accept comment "VyOS wan-trusted 100"
+  counter drop
+}
